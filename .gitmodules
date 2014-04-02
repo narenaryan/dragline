@@ -1,0 +1,3 @@
+[submodule "redisds"]
+	path = redisds
+	url = git@code.quadloops.com:inzyte/redisdatastructues.git
