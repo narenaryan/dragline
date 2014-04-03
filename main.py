@@ -56,7 +56,7 @@ class Crawl(object):
                 self.inc_count(url)
                 try:
                     head, content = self.http.request(url, 'GET')
-                    for i in self.parser.parse(url, content):
+                    for i in self.parser.parse(head,url, content):
                         self.insert(i)
                     self.visited_urls.add(url)
                     self.dec_count(url)

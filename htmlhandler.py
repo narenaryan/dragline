@@ -9,9 +9,10 @@ class Parser:
         self.url_pattern = re.compile(
             '(%s)' % '|'.join(re.escape(i) for i in allowed_urls))
 
-    def parse(self, baseurl, content):
-        data = html.fromstring(content)
-        for url in data.xpath('//a/@href'):
-            url = urldefrag(urljoin(baseurl, url.strip()))[0]
-            if self.url_pattern.match(url):
-                yield url
+    def parse(self, head,baseurl, content):
+        if "text/html" in head['content-type']:
+            data = html.fromstring(content)
+            for url in data.xpath('//a/@href'):
+                url = urldefrag(urljoin(baseurl, url.strip()))[0]
+                if self.url_pattern.match(url):
+                    yield url
