@@ -10,5 +10,5 @@ class Parser:
         for url in data.xpath('//a/@href'):
             url = urldefrag(urljoin(baseurl, url.strip()))[0]
             if self.url_pattern.match(url):
-                self.insert(re.escape(url))
+                yield url
 
