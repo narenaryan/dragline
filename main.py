@@ -20,9 +20,9 @@ class Crawl(object):
 
     def __init__(self, module):
         #self.url_pattern = re.compile(module.ALLOWED_URLS[0])
-        self.parser=Parser(module.ALLOWED_URLS)
+        self.parser=Parser(module.ALLOWED_URLS,module.PARSERS)
         self.http = httplib2.Http()
-        self.parsers = module.PARSERS
+        
 
     @classmethod
     def count(crawl):
@@ -44,7 +44,7 @@ class Crawl(object):
     @classmethod
     def insert(crawl, url):
         if not any(url in i for i in (crawl.current_urls, crawl.visited_urls, crawl.url_queue)):
-            print "found", url
+            #print "found", #
             crawl.url_queue.put(url)
 
     
@@ -60,7 +60,7 @@ class Crawl(object):
                         self.insert(i)
                     self.visited_urls.add(url)
                     self.dec_count(url)
-                    print "processed", url
+                    #print "processed", url
                 except Exception, e:
                     print "failed", url, traceback.format_exc()
             else:
