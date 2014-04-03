@@ -11,7 +11,7 @@ import sys
 import os
 import re
 import traceback
-
+from parser import Parser
 
 class Crawl(object):
     lock = BoundedSemaphore(1)
@@ -19,9 +19,10 @@ class Crawl(object):
     running_count = 0
 
     def __init__(self, module):
-        self.url_pattern = re.compile(module.ALLOWED_URLS[0])
+        #self.url_pattern = re.compile(module.ALLOWED_URLS[0])
+        self.parser=Parser(module.ALLOWED_URLS)
         self.http = httplib2.Http()
-        self.parsers = module.PARSERS
+       # self.parsers = module.PARSERS
 
     @classmethod
     def count(crawl):
@@ -46,13 +47,7 @@ class Crawl(object):
             print "found", url
             crawl.url_queue.put(url)
 
-    def parse(self, baseurl, content):
-        data = html.fromstring(content)
-        for url in data.xpath('//a/@href'):
-            url = urldefrag(urljoin(baseurl, url.strip()))[0]
-            if self.url_pattern.match(url):
-                self.insert(url)
-
+    
     def process_url(self):
         while True:
             url = self.url_queue.get(timeout=2)
@@ -61,7 +56,8 @@ class Crawl(object):
                 self.inc_count(url)
                 try:
                     head, content = self.http.request(url, 'GET')
-                    self.parse(url, content)
+                    for i in self.parser.parse(url, content):
+                        self.insert(i)
                     self.visited_urls.add(url)
                     self.dec_count(url)
                     print "processed", url
