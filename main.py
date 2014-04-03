@@ -10,6 +10,7 @@ from lxml import html
 import sys
 import os
 import re
+import traceback
 
 
 class Crawl(object):
@@ -18,51 +19,56 @@ class Crawl(object):
     running_count = 0
 
     def __init__(self, module):
-        self.url_queue = RedisQueue(module.NAME, 'urls')
-        self.visited_urls = RedisSet(module.NAME, 'visited')
         self.url_pattern = re.compile(module.ALLOWED_URLS[0])
-        for i in module.START_URLS:
-            self.insert(i)
         self.http = httplib2.Http()
         self.parsers = module.PARSERS
 
-    def count(self):
-        return Crawl.running_count
+    @classmethod
+    def count(crawl):
+        return crawl.running_count
 
-    def inc_count(self, url):
-        Crawl.lock.acquire()
-        Crawl.current_urls.add(url)
-        Crawl.running_count += 1
-        Crawl.lock.release()
+    @classmethod
+    def inc_count(crawl, url):
+        crawl.lock.acquire()
+        crawl.current_urls.add(url)
+        crawl.running_count += 1
+        crawl.lock.release()
 
-    def dec_count(self, url):
-        Crawl.lock.acquire()
-        Crawl.current_urls.remove(url)
-        Crawl.running_count -= 1
-        Crawl.lock.release()
+    @classmethod
+    def dec_count(crawl, url):
+        crawl.lock.acquire()
+        crawl.running_count -= 1
+        crawl.lock.release()
 
-    def insert(self, url):
-        if not any(url in i for i in (Crawl.current_urls, self.visited_urls, self.url_queue)):
-            self.url_queue.put(url)
+    @classmethod
+    def insert(crawl, url):
+        if not any(url in i for i in (crawl.current_urls, crawl.visited_urls, crawl.url_queue)):
+            print "found", url
+            crawl.url_queue.put(url)
 
     def parse(self, baseurl, content):
         data = html.fromstring(content)
         for url in data.xpath('//a/@href'):
-            url = urldefrag(urljoin(baseurl, url))[0]
+            url = urldefrag(urljoin(baseurl, url.strip()))[0]
             if self.url_pattern.match(url):
                 self.insert(url)
 
     def process_url(self):
         while True:
             url = self.url_queue.get(timeout=2)
-            print url
             if url:
+                #print "processing", url
                 self.inc_count(url)
-                head, content = self.http.request(url, 'GET')
-                self.parse(url, content)
-                self.visited_urls.add(url)
-                self.dec_count(url)
+                try:
+                    head, content = self.http.request(url, 'GET')
+                    self.parse(url, content)
+                    self.visited_urls.add(url)
+                    self.dec_count(url)
+                    print "processed", url
+                except Exception, e:
+                    print "failed", url, traceback.format_exc()
             else:
+                print self.count()
                 if not self.count():
                     break
 
@@ -70,6 +76,10 @@ class Crawl(object):
 if len(sys.argv) > 1:
     sys.path.insert(0, sys.argv[1])
     import main
+    Crawl.url_queue = RedisQueue(main.NAME, 'urls')
+    Crawl.visited_urls = RedisSet(main.NAME, 'visited')
+    for url in main.START_URLS:
+        Crawl.insert(url)
     crawlers = []
     for i in xrange(5):
         crawler = Crawl(main)
