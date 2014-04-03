@@ -52,7 +52,7 @@ class Crawl(object):
         while True:
             url = self.url_queue.get(timeout=2)
             if url:
-                #print "processing", url
+                print "processing", url
                 self.inc_count(url)
                 try:
                     head, content = self.http.request(url, 'GET')
@@ -74,6 +74,8 @@ if len(sys.argv) > 1:
     import main
     Crawl.url_queue = RedisQueue(main.NAME, 'urls')
     Crawl.visited_urls = RedisSet(main.NAME, 'visited')
+    if Crawl.url_queue.isempty():
+        Crawl.visited_urls.clear()
     for url in main.START_URLS:
         Crawl.insert(url)
     crawlers = []
