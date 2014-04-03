@@ -9,10 +9,10 @@ class Parser:
     def __init__(self, allowed_urls, parsers):
         self.url_pattern = re.compile(
             '(%s)' % '|'.join(re.escape(i) for i in allowed_urls))
-        self.parsers=parsers
+        self.parsers = parsers
 
     def parse(self, head, baseurl, content):
-        #print baseurl
+        # print baseurl
         if "text/html" in head['content-type']:
             data = html.fromstring(content)
 
@@ -24,13 +24,10 @@ class Parser:
                 if self.url_pattern.match(url):
                     yield url
 
-    def process(self, baseurl,parser, data):
-        
-        if not re.match(re.escape(parser.__regex__),baseurl):
+    def process(self, baseurl, parser, data):
+        if not re.match(re.escape(parser.__regex__), baseurl):
             return
-        
-
         item = dict()
         for title, xpath in parser.__xpath__.items():
             item[title] = data.xpath(xpath)
-        parser.__process__(item)
+        parser.__process__(baseurl, item)
