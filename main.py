@@ -5,13 +5,13 @@ import httplib2
 import httpcache2
 from redisds import RedisQueue, RedisSet
 from gevent.coros import BoundedSemaphore
-from urlparse import urljoin, urldefrag
+
 from lxml import html
 import sys
 import os
 import re
 import traceback
-from parser import Parser
+from htmlhandler import Parser
 
 class Crawl(object):
     lock = BoundedSemaphore(1)
@@ -22,7 +22,7 @@ class Crawl(object):
         #self.url_pattern = re.compile(module.ALLOWED_URLS[0])
         self.parser=Parser(module.ALLOWED_URLS)
         self.http = httplib2.Http()
-       # self.parsers = module.PARSERS
+        self.parsers = module.PARSERS
 
     @classmethod
     def count(crawl):
