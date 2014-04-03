@@ -1,3 +1,6 @@
 [submodule "redisds"]
 	path = redisds
 	url = git@code.quadloops.com:inzyte/redisdatastructues.git
+[submodule "sample"]
+	path = sample
+	url = git@code.quadloops.com:inzyte/samplespider.git
