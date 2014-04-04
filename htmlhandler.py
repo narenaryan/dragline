@@ -9,10 +9,10 @@ class Parser:
     def __init__(self, allowed_urls, parsers):
         self.url_pattern = re.compile(
             '(%s)' % '|'.join(re.escape(i) for i in allowed_urls))
-        self.parsers=parsers
+        self.parsers = parsers
 
     def parse(self, head, baseurl, content):
-        #print baseurl
+        # print baseurl
         if "text/html" in head['content-type']:
             
 
@@ -26,4 +26,3 @@ class Parser:
                 if self.url_pattern.match(url):
                     yield url
 
-    
