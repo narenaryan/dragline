@@ -10,6 +10,7 @@ from lxml import html
 import sys
 import os
 import re
+import time
 import traceback
 from htmlhandler import Parser
 
@@ -19,10 +20,10 @@ class Crawl(object):
     current_urls = set()
     running_count = 0
 
-    def __init__(self, module):
+    def __init__(self):
         #self.url_pattern = re.compile(module.ALLOWED_URLS[0])
-        self.parser = Parser(module.ALLOWED_URLS, module.PARSERS)
-        self.http = httplib2.Http()
+        self.parser = Crawl.Parsers
+        self.http = httplib2.Http(timeout=5)
 
     @classmethod
     def count(crawl):
@@ -49,11 +50,14 @@ class Crawl(object):
 
     def process_url(self):
         while True:
+
+
             url = self.url_queue.get(timeout=2)
             if url:
-                # print "processing", url
+                #print "processing", url
                 self.inc_count(url)
                 try:
+                    time.sleep(2)
                     head, content = self.http.request(url, 'GET')
                     for i in self.parser.parse(head, url, content):
                         self.insert(i)
@@ -73,13 +77,14 @@ if len(sys.argv) > 1:
     import main
     Crawl.url_queue = RedisQueue(main.NAME, 'urls')
     Crawl.visited_urls = RedisSet(main.NAME, 'visited')
-    if Crawl.url_queue.isempty():
-        Crawl.visited_urls.clear()
+    Crawl.Parsers = Parser(main.ALLOWED_URLS, main.PARSERS)
+    # if Crawl.url_queue.isempty():
+    #     Crawl.visited_urls.clear()
     for url in main.START_URLS:
         Crawl.insert(url)
     crawlers = []
     for i in xrange(5):
-        crawler = Crawl(main)
+        crawler = Crawl()
         crawlers.append(spawn(crawler.process_url))
     joinall(crawlers)
     print "finished"
