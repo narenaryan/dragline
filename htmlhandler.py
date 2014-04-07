@@ -15,7 +15,7 @@ class Parser:
         self.parsers = parsers
 
     def parse(self, head, baseurl, content):
-        # print baseurl
+        
         if "text/html" in head['content-type']:
             
 
@@ -37,10 +37,10 @@ class Parser:
         print type(regex)
         print regex
         regex = re.escape(regex)
-        regex=regex.replace("/NUM\/","/[0-9]+\/");
-        regex=regex.replace("/ALPHA\/","/[a-zA-Z]+\/");
-        regex=regex.replace("/ALPHANUM\/","/[0-9a-zA-Z]+\/");
-        regex=regex.replace("/ANY\/","/.+\/")
+        regex=regex.replace("NUM","[0-9]+");
+        regex=regex.replace("ALPHA","[a-zA-Z]+");
+        regex=regex.replace("ALPHANUM","[0-9a-zA-Z]+");
+        regex=regex.replace("ANY",".+")
         return regex
             #parser.__regex__=re.compile(parser.__regex__)
 

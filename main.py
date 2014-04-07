@@ -10,6 +10,7 @@ from lxml import html
 import sys
 import os
 import re
+import urllib
 import time
 import traceback
 from htmlhandler import Parser
@@ -21,7 +22,7 @@ class Crawl(object):
     running_count = 0
 
     def __init__(self):
-        #self.url_pattern = re.compile(module.ALLOWED_URLS[0])
+      
         self.parser = Crawl.Parsers
         self.http = httplib2.Http(timeout=5)
 
@@ -58,7 +59,7 @@ class Crawl(object):
                 self.inc_count(url)
                 try:
                     time.sleep(2)
-                    head, content = self.http.request(url, 'GET')
+                    head, content = self.http.request(urllib.quote(url,":/"), 'GET')
                     for i in self.parser.parse(head, url, content):
                         self.insert(i)
                     self.visited_urls.add(url)
