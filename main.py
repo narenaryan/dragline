@@ -11,7 +11,7 @@ import os
 import re
 import urllib
 import time
-from parsehandler import ParserHandler
+from htmlhandler import HtmlHandler
 import logging
 from settings import Settings
 
@@ -29,7 +29,7 @@ class Crawl:
         self.running_count = 0
         self.url_queue = RedisQueue(main.NAME, 'urls')
         self.visited_urls = RedisSet(main.NAME, 'visited')
-        self.parser = ParserHandler(main.ALLOWED_URLS, main.PARSERS)
+        self.handler = HtmlHandler(main.ALLOWED_URLS, main.PARSER_MODULE)
 
     def count(self):
         return self.running_count
@@ -58,17 +58,17 @@ class Crawler:
         self.max_delay = 300
         self.delay = self.min_delay + 5
 
-    def process_url(self, crawler):
+    def process_url(self, crawl):
         retry = 0
         while True:
 
             if not retry:
-                url = crawler.url_queue.get(timeout=2)
+                url = crawl.url_queue.get(timeout=2)
             else:
                 logger.debug("Retrying %s for the %s time", url, retry)
             if url:
                 logger.debug("Processing url :%s", url)
-                crawler.inc_count(url)
+                crawl.inc_count(url)
                 try:
 
                     self.http.timeout = self.delay
@@ -93,23 +93,24 @@ class Crawler:
                     logger.info("Finished processing %s", url)
                     self.delay = min(
                         max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
-                    for i in crawler.parser.parse(head, url, content):
-                        crawler.insert(i)
-                    crawler.visited_urls.add(url)
-                crawler.dec_count(url)
+                    for i in crawl.handler.parse(head, url, content):
+                        crawl.insert(i)
+                    crawl.visited_urls.add(url)
+                crawl.dec_count(url)
 
             else:
-                if not crawler.count():
+                if not crawl.count():
                     break
 
 
 if len(sys.argv) > 1:
     sys.path.insert(0, sys.argv[1])
+    import main
+    del sys.path[0]
 else:
     logger.error("No spider specified")
     exit()
 
-import main
 crawl = Crawl(main)
 for url in main.START_URLS:
     crawl.insert(url)
