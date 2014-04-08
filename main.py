@@ -13,7 +13,7 @@ import re
 import urllib
 import time
 import traceback
-from htmlhandler import Parser
+from parsehandler import ParserHandler
 
 agents = ['Mozilla/1.22 (compatible; MSIE 2.0d; Windows NT)',
           'Mozilla/2.0 (compatible; MSIE 3.02; Update a; Windows NT)',
@@ -99,7 +99,7 @@ class Crawl(object):
                 try:
 
                     self.http.timeout = self.delay
-                    print "current delay is ",self.delay
+                    print "current delay is ", self.delay
 
                     time.sleep(self.delay)
                     start = time.time()
@@ -139,7 +139,7 @@ if len(sys.argv) > 1:
     import main
     Crawl.url_queue = RedisQueue(main.NAME, 'urls')
     Crawl.visited_urls = RedisSet(main.NAME, 'visited')
-    Crawl.Parsers = Parser(main.ALLOWED_URLS, main.PARSERS)
+    Crawl.Parsers = ParserHandler(main.ALLOWED_URLS, main.PARSERS)
     # if Crawl.url_queue.isempty():
     #     Crawl.visited_urls.clear()
     for url in main.START_URLS:
