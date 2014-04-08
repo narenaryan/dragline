@@ -21,52 +21,54 @@ logger = logging.getLogger(__name__)
 logger.setLevel(getattr(logging, settings['loglevel']))
 
 
-class Crawl(object):
-    lock = BoundedSemaphore(1)
-    current_urls = set()
-    running_count = 0
+class Crawl:
+
+    def __init__(self, main):
+        self.lock = BoundedSemaphore(1)
+        self.current_urls = set()
+        self.running_count = 0
+        self.url_queue = RedisQueue(main.NAME, 'urls')
+        self.visited_urls = RedisSet(main.NAME, 'visited')
+        self.parser = ParserHandler(main.ALLOWED_URLS, main.PARSERS)
+
+    def count(self):
+        return self.running_count
+
+    def inc_count(self, url):
+        self.lock.acquire()
+        self.current_urls.add(url)
+        self.running_count += 1
+        self.lock.release()
+
+    def dec_count(self, url):
+        self.lock.acquire()
+        self.running_count -= 1
+        self.lock.release()
+
+    def insert(self, url):
+        if not any(url in i for i in (self.current_urls, self.visited_urls, self.url_queue)):
+            self.url_queue.put(url)
+
+
+class Crawler:
 
     def __init__(self):
-        self.parser = Crawl.Parsers
         self.http = httplib2.Http(timeout=350)
         self.min_delay = 0.5
         self.max_delay = 300
         self.delay = self.min_delay + 5
 
-    @classmethod
-    def count(crawl):
-        return crawl.running_count
-
-    @classmethod
-    def inc_count(crawl, url):
-        crawl.lock.acquire()
-        crawl.current_urls.add(url)
-        crawl.running_count += 1
-        crawl.lock.release()
-
-    @classmethod
-    def dec_count(crawl, url):
-        crawl.lock.acquire()
-        crawl.running_count -= 1
-        crawl.lock.release()
-
-    @classmethod
-    def insert(crawl, url):
-        if not any(url in i for i in (crawl.current_urls, crawl.visited_urls, crawl.url_queue)):
-            crawl.url_queue.put(url)
-
-    def process_url(self):
+    def process_url(self, crawler):
         retry = 0
         while True:
 
             if not retry:
-                url = self.url_queue.get(timeout=2)
+                url = crawler.url_queue.get(timeout=2)
             else:
                 logger.debug("Retrying %s for the %s time", url, retry)
-
             if url:
                 logger.debug("Processing url :%s", url)
-                self.inc_count(url)
+                crawler.inc_count(url)
                 try:
 
                     self.http.timeout = self.delay
@@ -91,14 +93,13 @@ class Crawl(object):
                     logger.info("Finished processing %s", url)
                     self.delay = min(
                         max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
-
-                    for i in self.parser.parse(head, url, content):
-                        self.insert(i)
-                    self.visited_urls.add(url)
-                self.dec_count(url)
+                    for i in crawler.parser.parse(head, url, content):
+                        crawler.insert(i)
+                    crawler.visited_urls.add(url)
+                crawler.dec_count(url)
 
             else:
-                if not self.count():
+                if not crawler.count():
                     break
 
 
@@ -109,20 +110,13 @@ else:
     exit()
 
 import main
-Crawl.url_queue = RedisQueue(main.NAME, 'urls')
-Crawl.visited_urls = RedisSet(main.NAME, 'visited')
-Crawl.Parsers = ParserHandler(main.ALLOWED_URLS, main.PARSERS)
-# if Crawl.url_queue.isempty():
-#     Crawl.visited_urls.clear()
+crawl = Crawl(main)
 for url in main.START_URLS:
-    Crawl.insert(url)
-crawlers = []
-for i in xrange(5):
-    crawler = Crawl()
-    crawlers.append(spawn(crawler.process_url))
+    crawl.insert(url)
 try:
-    joinall(crawlers)
+    crawlers = [Crawler() for i in xrange(5)]
+    joinall([spawn(crawler.process_url, crawl) for crawler in crawlers])
 except:
-    logger.info("stopped %d threads", Crawl.running_count)
+    logger.info("stopped %d threads", crawl.count(), exc_info=True)
 else:
     logger.info("finished")
