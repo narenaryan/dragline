@@ -14,6 +14,23 @@ import urllib
 import time
 import traceback
 from parsehandler import ParserHandler
+import logging
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# create a file handler
+# handler = logging.FileHandler('hello.log')
+# handler.setLevel(logging.DEBUG)
+
+# # create a logging format
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler.setFormatter(formatter)
+
+# # add the handlers to the logger
+# logger.addHandler(handler)
+
+
 
 agents = ['Mozilla/1.22 (compatible; MSIE 2.0d; Windows NT)',
           'Mozilla/2.0 (compatible; MSIE 3.02; Update a; Windows NT)',
@@ -91,10 +108,12 @@ class Crawl(object):
             if not retry:
                 url = self.url_queue.get(timeout=2)
             else:
-                print "retrying ", url, "for ", retry, " time"
+                #print "retrying ", url, "for ", retry, " time"
+                logger.debug("Retrying %s for the %s time",url,retry)
 
             if url:
-                print "processing", url
+                #print "processing", url
+                logger.debug("Processing url :%s",url)
                 self.inc_count(url)
                 try:
 
@@ -113,12 +132,15 @@ class Crawl(object):
                 except httplib2.ServerNotFoundError, e:
                     self.http = httplib2.Http(timeout=self.delay)
                     retry = retry + 1 if retry < 3 else 0
+                    if retry==0:
+                        logger.debug("Rejecting %s",url)
 
                     # print "processed", url
                 except Exception, e:
                     print "failed", url, traceback.format_exc()
                 else:
                     retry = 0
+                    logger.info("Finished processing %s",url)
                     self.delay = min(
                         max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
                    # new_delay = min(max(self.mindelay, latency, (slot.delay + latency) / 2.0), self.maxdelay)
