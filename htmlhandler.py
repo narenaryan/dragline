@@ -32,6 +32,8 @@ class HtmlHandler:
             if module == '__init__.py' or module[-3:] != '.py':
                 continue
             parser = __import__(module[:-3], locals(), globals())
+            if not getattr(parser, '__regex__', None):
+                continue
             parser.__regex__ = re.compile(self.compile_regex(parser.__regex__))
             parsers.append(parser)
         del sys.path[0]
