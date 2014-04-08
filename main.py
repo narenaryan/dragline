@@ -118,7 +118,7 @@ class Crawl(object):
                 try:
 
                     self.http.timeout = self.delay
-                    print "current delay is ", self.delay
+                    
 
                     time.sleep(self.delay)
                     start = time.time()
@@ -137,7 +137,7 @@ class Crawl(object):
 
                     # print "processed", url
                 except Exception, e:
-                    print "failed", url, traceback.format_exc()
+                    logger.error('Failed to open the url %s',url, exc_info=True)
                 else:
                     retry = 0
                     logger.info("Finished processing %s",url)
