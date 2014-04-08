@@ -98,7 +98,6 @@ class Crawl(object):
                 self.dec_count(url)
 
             else:
-                print self.count()
                 if not self.count():
                     break
 
@@ -106,6 +105,7 @@ class Crawl(object):
 if len(sys.argv) > 1:
     sys.path.insert(0, sys.argv[1])
 else:
+    logger.error("No spider specified")
     exit()
 
 import main
@@ -123,6 +123,6 @@ for i in xrange(5):
 try:
     joinall(crawlers)
 except:
-    logger.info("stopped")
+    logger.info("stopped %d threads", Crawl.running_count)
 else:
     logger.info("finished")
