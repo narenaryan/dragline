@@ -26,7 +26,7 @@ class Crawl:
 
     def __init__(self, main):
         self.lock = BoundedSemaphore(1)
-        self.current_urls = set()
+        self.current_urls = RedisSet(main.NAME,'current_urls')
         self.running_count = 0
         self.url_queue = RedisQueue(main.NAME, 'urls')
         self.visited_urls = RedisSet(main.NAME, 'visited')
@@ -44,11 +44,12 @@ class Crawl:
     def dec_count(self, url):
         self.lock.acquire()
         self.running_count -= 1
+        self.current_urls.remove(url)
         self.lock.release()
 
     def insert(self, url):
 
-        if not any(url in i for i in (self.current_urls, self.visited_urls, self.url_queue)):
+        if not any(url in i for i in (self.current_urls,self.visited_urls, self.url_queue)):
             self.url_queue.put(url)
 
 
