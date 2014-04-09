@@ -81,7 +81,7 @@ class Crawler:
                         urllib.quote(url, ":/?=&"), 'GET', headers=settings['headers'])
 
                     end = time.time()
-                except (httplib2.ServerNotFoundError, socket.timeout) as e:
+                except (httplib2.ServerNotFoundError, socket.timeout,socket.gaierror) as e:
                     self.http = httplib2.Http(timeout=self.delay)
                     retry = retry + 1 if retry < 3 else 0
                     if retry == 0:
