@@ -3,6 +3,9 @@ import os
 import sys
 from lxml import etree
 from urlparse import urljoin, urldefrag
+import logging
+
+logger = logging.getLogger('__main__')
 
 
 class HtmlHandler:
@@ -16,7 +19,10 @@ class HtmlHandler:
         if "text/html" in head['content-type']:
             for parser in self.parsers:
                 if parser.__regex__.match(baseurl):
-                    parser.__process__(baseurl, content)
+                    try:
+                        parser.__process__(baseurl, content)
+                    except:
+                        logger.info("Failed to parse %s", baseurl)
             data = etree.HTML(content)
 
             for url in data.xpath('//a/@href'):
