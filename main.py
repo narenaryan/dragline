@@ -8,6 +8,7 @@ from gevent.coros import BoundedSemaphore
 
 import sys
 import os
+import socket
 import re
 import urllib
 import time
@@ -80,15 +81,20 @@ class Crawler:
                         urllib.quote(url, ":/?=&"), 'GET', headers=settings['headers'])
 
                     end = time.time()
-                except httplib2.ServerNotFoundError, e:
+                except httplib2.ServerNotFoundError,socket.timeout:
                     self.http = httplib2.Http(timeout=self.delay)
                     retry = retry + 1 if retry < 3 else 0
                     if retry == 0:
                         logger.debug("Rejecting %s", url)
+                
+
 
                 except Exception, e:
+                    print "type is ",type(e)
                     logger.error(
                         'Failed to open the url %s', url, exc_info=True)
+                
+
                 else:
                     retry = 0
                     logger.info("Finished processing %s", url)
