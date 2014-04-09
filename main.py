@@ -29,7 +29,7 @@ class Crawl:
         self.current_urls = set()
         self.running_count = 0
         self.url_queue = RedisQueue(main.NAME, 'urls')
-        self.visited_urls = RedisSet(main.NAME, 'visited', hash_func=None)
+        self.visited_urls = RedisSet(main.NAME, 'visited')
         self.handler = HtmlHandler(main.ALLOWED_URLS, main.PARSER_MODULE)
 
     def count(self):
