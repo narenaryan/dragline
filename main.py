@@ -28,7 +28,7 @@ class Crawl:
         self.current_urls = set()
         self.running_count = 0
         self.url_queue = RedisQueue(main.NAME, 'urls')
-        self.visited_urls = RedisSet(main.NAME, 'visited')
+        self.visited_urls = RedisSet(main.NAME, 'visited',hash_func=None)
         self.handler = HtmlHandler(main.ALLOWED_URLS, main.PARSER_MODULE)
 
     def count(self):
@@ -46,7 +46,8 @@ class Crawl:
         self.lock.release()
 
     def insert(self, url):
-        if not any(url in i for i in (self.current_urls, self.visited_urls, self.url_queue)):
+
+        if not any(url in i for i in (self.current_urls,self.visited_urls, self.url_queue)):
             self.url_queue.put(url)
 
 
@@ -93,7 +94,7 @@ class Crawler:
                     logger.info("Finished processing %s", url)
                     self.delay = min(
                         max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
-                    for i in crawl.handler.parse(head, url, content):
+                    for i in crawl.handler.parse(head,head['content-location'], content):
                         crawl.insert(i)
                     crawl.visited_urls.add(url)
                 crawl.dec_count(url)
