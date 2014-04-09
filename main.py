@@ -8,7 +8,7 @@ from gevent.coros import BoundedSemaphore
 
 import sys
 import os
-#import socket
+import socket
 import re
 import urllib
 import time
@@ -86,9 +86,11 @@ class Crawler:
                     retry = retry + 1 if retry < 3 else 0
                     if retry == 0:
                         logger.debug("Rejecting %s", url)
+                        crawl.visited_urls.add(url)
                 except Exception, e:
                     logger.error(
                         '%s: Failed to open the url %s', type(e), url, exc_info=True)
+                    crawl.visited_urls.add(url)
                 else:
                     retry = 0
                     logger.info("Finished processing %s", url)
