@@ -1,4 +1,5 @@
 import defaultsettings
+import logging
 
 class empty: pass
 
@@ -8,6 +9,10 @@ class Settings:
 
     def __init__(self, module=empty()):
         self.__dict__['module'] = module
+        self.log = logging.getLogger("inzyte")
+        self.log.setLevel(self.LOG_LEVEL)
+        self.LOGHANDLER.setFormatter(self.LOGFORMATTER)
+        self.log.addHandler(self.LOGHANDLER)
 
     def __getattr__(self, name):
         try:
@@ -23,3 +28,4 @@ class Settings:
 
     def __setitem__(self, name, value):
         self.__setattr__(name, value)
+

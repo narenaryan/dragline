@@ -13,7 +13,6 @@ import re
 import urllib
 import time
 from htmlhandler import HtmlHandler
-import logging
 from settings import Settings
 
 
@@ -74,7 +73,7 @@ class Crawler:
                     time.sleep(self.delay)
                     start = time.time()
                     head, content = self.http.request(
-                        urllib.quote(url, ":/?=&"), 'GET', headers=settings['headers'])
+                        urllib.quote(url, ":/?=&"), 'GET', headers=settings.REQUEST_HEADERS)
 
                     end = time.time()
                 except (httplib2.ServerNotFoundError, socket.timeout,socket.gaierror) as e:
@@ -110,9 +109,7 @@ else:
     logger.error("No spider specified")
     exit()
 settings = Settings(main)
-logging.basicConfig()
-logger = logging.getLogger(__name__)
-logger.setLevel(getattr(logging, settings['loglevel']))
+logger = settings.log
 crawl = Crawl(settings)
 for url in settings.START_URLS:
     crawl.insert(url)
