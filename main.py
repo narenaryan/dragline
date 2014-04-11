@@ -106,7 +106,8 @@ if len(sys.argv) > 1:
     import main
     del sys.path[0]
 else:
-    logger.error("No spider specified")
+    print "No spider specified"
+    #logger.error("No spider specified")
     exit()
 settings = Settings(main)
 logger = settings.log

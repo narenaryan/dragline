@@ -5,16 +5,18 @@ from lxml import etree
 from urlparse import urljoin, urldefrag
 import logging
 
-logger = logging.getLogger('__main__')
+
 
 
 class HtmlHandler:
 
     def __init__(self, settings):
+        self.logger=settings.log
         self.url_pattern = re.compile(
             '(%s)' % '|'.join(self.compile_regex(i) for i in settings.ALLOWED_URLS))
         self.parsers = self.load_parser(settings.PARSER_MODULE)
         self.settings = settings
+        
 
     def parse(self, head, baseurl, content):
         if "text/html" in head['content-type']:
@@ -23,7 +25,7 @@ class HtmlHandler:
                     try:
                         parser.__process__(baseurl, content)
                     except:
-                        logger.error(
+                        self.logger.error(
                             "Failed to parse %s", baseurl, exc_info=True)
             data = etree.HTML(content)
 
@@ -39,7 +41,12 @@ class HtmlHandler:
         for module in os.listdir(dirname):
             if module == '__init__.py' or module[-3:] != '.py':
                 continue
-            parser = __import__(module[:-3], locals(), globals())
+            try:
+                parser = __import__(module[:-3], locals(), globals())
+            except:
+                self.logger.error("Failed to load paser  %s", module, exc_info=True)
+                continue
+
             if not getattr(parser, '__regex__', None):
                 continue
             parser.__regex__ = re.compile(self.compile_regex(parser.__regex__))
