@@ -9,7 +9,7 @@ class Settings:
 
     def __init__(self, module=empty()):
         self.__dict__['module'] = module
-        self.log = logging.getLogger("inzyte")
+        self.log = logging.getLogger(self.NAME)
         self.log.setLevel(self.LOG_LEVEL)
         self.LOGHANDLER.setFormatter(self.LOGFORMATTER)
         self.log.addHandler(self.LOGHANDLER)

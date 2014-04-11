@@ -6,17 +6,14 @@ from urlparse import urljoin, urldefrag
 import logging
 
 
-
-
 class HtmlHandler:
 
     def __init__(self, settings):
-        self.logger=settings.log
+        self.log = settings.log
         self.url_pattern = re.compile(
             '(%s)' % '|'.join(self.compile_regex(i) for i in settings.ALLOWED_URLS))
         self.parsers = self.load_parser(settings.PARSER_MODULE)
         self.settings = settings
-        
 
     def parse(self, head, baseurl, content):
         if "text/html" in head['content-type']:
@@ -25,7 +22,7 @@ class HtmlHandler:
                     try:
                         parser.__process__(baseurl, content)
                     except:
-                        self.logger.error(
+                        self.log.error(
                             "Failed to parse %s", baseurl, exc_info=True)
             data = etree.HTML(content)
 
@@ -44,7 +41,8 @@ class HtmlHandler:
             try:
                 parser = __import__(module[:-3], locals(), globals())
             except:
-                self.logger.error("Failed to load paser  %s", module, exc_info=True)
+                self.log.error(
+                    "Failed to load paser  %s", module, exc_info=True)
                 continue
 
             if not getattr(parser, '__regex__', None):
