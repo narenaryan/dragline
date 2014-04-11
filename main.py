@@ -24,7 +24,7 @@ class Crawl:
         self.running_count = 0
         self.url_queue = RedisQueue(settings.NAME, 'urls')
         self.visited_urls = RedisSet(settings.NAME, 'visited')
-        self.handler = HtmlHandler(settings.ALLOWED_URLS, settings.PARSER_MODULE)
+        self.handler = HtmlHandler(settings)
 
     def count(self):
         return self.running_count
@@ -80,7 +80,7 @@ class Crawler:
                     self.http = httplib2.Http(timeout=self.delay)
                     retry = retry + 1 if retry < 3 else 0
                     if retry == 0:
-                        logger.debug("Rejecting %s", url)
+                        logger.warning("Rejecting %s", url)
                         crawl.visited_urls.add(url)
                 except Exception, e:
                     logger.error(

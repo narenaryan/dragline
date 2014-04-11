@@ -10,10 +10,11 @@ logger = logging.getLogger('__main__')
 
 class HtmlHandler:
 
-    def __init__(self, allowed_urls, parser_module):
+    def __init__(self, settings):
         self.url_pattern = re.compile(
-            '(%s)' % '|'.join(self.compile_regex(i) for i in allowed_urls))
-        self.parsers = self.load_parser(parser_module)
+            '(%s)' % '|'.join(self.compile_regex(i) for i in settings.ALLOWED_URLS))
+        self.parsers = self.load_parser(settings.PARSER_MODULE)
+        self.settings = settings
 
     def parse(self, head, baseurl, content):
         if "text/html" in head['content-type']:
@@ -22,7 +23,8 @@ class HtmlHandler:
                     try:
                         parser.__process__(baseurl, content)
                     except:
-                        logger.info("Failed to parse %s", baseurl)
+                        logger.error(
+                            "Failed to parse %s", baseurl, exc_info=True)
             data = etree.HTML(content)
 
             for url in data.xpath('//a/@href'):
