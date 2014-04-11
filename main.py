@@ -16,21 +16,16 @@ from htmlhandler import HtmlHandler
 import logging
 from settings import Settings
 
-settings = Settings()
-logging.basicConfig()
-logger = logging.getLogger(__name__)
-logger.setLevel(getattr(logging, settings['loglevel']))
-
 
 class Crawl:
 
-    def __init__(self, main):
+    def __init__(self, settings):
         self.lock = BoundedSemaphore(1)
-        self.current_urls = RedisSet(main.NAME,'current_urls')
+        self.current_urls = RedisSet(settings.NAME,'current_urls')
         self.running_count = 0
-        self.url_queue = RedisQueue(main.NAME, 'urls')
-        self.visited_urls = RedisSet(main.NAME, 'visited')
-        self.handler = HtmlHandler(main.ALLOWED_URLS, main.PARSER_MODULE)
+        self.url_queue = RedisQueue(settings.NAME, 'urls')
+        self.visited_urls = RedisSet(settings.NAME, 'visited')
+        self.handler = HtmlHandler(settings.ALLOWED_URLS, settings.PARSER_MODULE)
 
     def count(self):
         return self.running_count
@@ -114,9 +109,12 @@ if len(sys.argv) > 1:
 else:
     logger.error("No spider specified")
     exit()
-
-crawl = Crawl(main)
-for url in main.START_URLS:
+settings = Settings(main)
+logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.setLevel(getattr(logging, settings['loglevel']))
+crawl = Crawl(settings)
+for url in settings.START_URLS:
     crawl.insert(url)
 try:
     crawlers = [Crawler() for i in xrange(5)]
