@@ -91,7 +91,11 @@ class Crawler:
                     logger.info("Finished processing %s", url)
                     self.delay = min(
                         max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
-                    for i in crawl.handler.parse(head, head['content-location'], content):
+                    if "content-location" in head:
+                        url=head['content-location']
+                        
+
+                    for i in crawl.handler.parse(head, url, content):
                         crawl.insert(i)
                     crawl.visited_urls.add(url)
                 crawl.dec_count(url)

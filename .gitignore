@@ -1,2 +1,5 @@
 *.pyc
+*.log
+*.txt
+*.kdev4
 .*
