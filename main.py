@@ -1,3 +1,6 @@
+from gevent import monkey, spawn, joinall
+monkey.patch_all()
+
 import sys
 import argparse
 import os
@@ -27,6 +30,8 @@ def main():
     module = load_module(path, filename.strip('.py'))
     spider = getattr(module, module.spider_class)()
     Crawler.load_spider(spider)
+    crawlers = [Crawler() for i in xrange(5)]
+    joinall([spawn(crawler.process_url) for crawler in crawlers])
     print spider
 
 if __name__ == "__main__":

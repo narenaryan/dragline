@@ -4,18 +4,20 @@ import urllib
 import httplib2
 from redisds import RedisQueue, RedisSet
 from gevent.coros import BoundedSemaphore
+import json
 
 
 class Crawl:
 
     def __init__(self, spider):
         self.lock = BoundedSemaphore(1)
-        self.current_urls = RedisSet(spider._name, 'current_urls')
+        hash_func = lambda x: str(x['url'])
+        self.current_urls = RedisSet(spider._name, 'current_urls', hash_func)
         self.running_count = 0
-        self.url_queue = RedisQueue(spider._name, 'urls')
-        self.visited_urls = RedisSet(spider._name, 'visited')
+        self.url_queue = RedisQueue(spider._name, 'urls', json, hash_func)
+        self.visited_urls = RedisSet(spider._name, 'visited', hash_func)
         self.spider = spider
-        self.insert(spider._start_url)
+        self.insert({"url": spider._start_url, "callback": "parse"})
 
     def count(self):
         return self.running_count
@@ -51,14 +53,16 @@ class Crawler:
 
     def process_url(self):
         retry = 0
-        logger = Crawler.crawl.logger
         crawl = Crawler.crawl
+        logger = crawl.spider.logger
         while True:
             if not retry:
-                url = crawl.url_queue.get(timeout=2)
+                data = crawl.url_queue.get(timeout=2)
+                print data
             else:
-                logger.debug("Retrying %s for the %s time", url, retry)
-            if url:
+                logger.debug("Retrying %s for the %s time", data['url'], retry)
+            if data:
+                url = data['url']
                 logger.debug("Processing url :%s", url)
                 crawl.inc_count(url)
                 try:
