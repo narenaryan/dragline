@@ -35,8 +35,12 @@ class Crawl:
         self.lock.release()
 
     def insert(self, url):
-        if not any(url in i for i in (self.current_urls, self.visited_urls, self.url_queue)):
-            self.url_queue.put(url)
+       
+            if not any(url in i for i in (self.current_urls, self.visited_urls, self.url_queue)):
+                self.url_queue.put(url)
+
+         # self.url_queue.put(url)
+
 
 
 class Crawler:
@@ -63,8 +67,9 @@ class Crawler:
                 logger.debug("Retrying %s for the %s time", data['url'], retry)
             if data:
                 url = data['url']
+                callback= data['callback']
                 logger.debug("Processing url :%s", url)
-                crawl.inc_count(url)
+                crawl.inc_count(data)
                 try:
 
                     self.http.timeout = self.delay
@@ -72,26 +77,31 @@ class Crawler:
                     time.sleep(self.delay)
                     start = time.time()
                     head, content = self.http.request(
-                        urllib.quote(url, ":/?=&"), 'GET',
-                        headers=crawl.spider.REQUEST_HEADERS)
+                        urllib.quote(url, ":/?=&"), 'GET')
+                    
+                    callback =  getattr(crawl.spider,callback)
+
+                    for urlinfo in callback(url,content):
+                        crawl.insert(urlinfo)
+
                     end = time.time()
                 except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
                     self.http = httplib2.Http(timeout=self.delay)
                     retry = retry + 1 if retry < 3 else 0
                     if retry == 0:
                         logger.warning("Rejecting %s", url)
-                        crawl.visited_urls.add(url)
+                        crawl.visited_urls.add(data)
                 except Exception as e:
                     logger.error(
                         '%s: Failed to open the url %s', type(e), url, exc_info=True)
-                    crawl.visited_urls.add(url)
+                    crawl.visited_urls.add(data)
                 else:
                     retry = 0
                     logger.info("Finished processing %s", url)
                     self.delay = min(
                         max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
-                    crawl.visited_urls.add(url)
-                crawl.dec_count(url)
+                    crawl.visited_urls.add(data)
+                crawl.dec_count(data)
 
             else:
                 if not crawl.count():
