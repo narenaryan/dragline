@@ -1,25 +1,21 @@
-
-
+import time
+import socket
+import urllib
 import httplib2
-
 from redisds import RedisQueue, RedisSet
 from gevent.coros import BoundedSemaphore
 
 
-import socket
-import urllib
-import time
-
-
 class Crawl:
 
-    def __init__(self, settings):
+    def __init__(self, spider):
         self.lock = BoundedSemaphore(1)
-        self.current_urls = RedisSet(settings.NAME,'current_urls')
+        self.current_urls = RedisSet(spider._name, 'current_urls')
         self.running_count = 0
-        self.url_queue = RedisQueue(settings.NAME, 'urls')
-        self.visited_urls = RedisSet(settings.NAME, 'visited')
-        self.handler = HtmlHandler(settings)
+        self.url_queue = RedisQueue(spider._name, 'urls')
+        self.visited_urls = RedisSet(spider._name, 'visited')
+        self.spider = spider
+        self.insert(spider._start_url)
 
     def count(self):
         return self.running_count
@@ -37,8 +33,7 @@ class Crawl:
         self.lock.release()
 
     def insert(self, url):
-
-        if not any(url in i for i in (self.current_urls,self.visited_urls, self.url_queue)):
+        if not any(url in i for i in (self.current_urls, self.visited_urls, self.url_queue)):
             self.url_queue.put(url)
 
 
@@ -50,10 +45,15 @@ class Crawler:
         self.max_delay = 300
         self.delay = self.min_delay + 5
 
-    def process_url(self, crawl):
-        retry = 0
-        while True:
+    @classmethod
+    def load_spider(Crawler, module):
+        Crawler.crawl = Crawl(module)
 
+    def process_url(self):
+        retry = 0
+        logger = Crawler.crawl.logger
+        crawl = Crawler.crawl
+        while True:
             if not retry:
                 url = crawl.url_queue.get(timeout=2)
             else:
@@ -68,16 +68,16 @@ class Crawler:
                     time.sleep(self.delay)
                     start = time.time()
                     head, content = self.http.request(
-                        urllib.quote(url, ":/?=&"), 'GET', headers=settings.REQUEST_HEADERS)
-
+                        urllib.quote(url, ":/?=&"), 'GET',
+                        headers=crawl.spider.REQUEST_HEADERS)
                     end = time.time()
-                except (httplib2.ServerNotFoundError, socket.timeout,socket.gaierror) as e:
+                except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
                     self.http = httplib2.Http(timeout=self.delay)
                     retry = retry + 1 if retry < 3 else 0
                     if retry == 0:
                         logger.warning("Rejecting %s", url)
                         crawl.visited_urls.add(url)
-                except Exception, e:
+                except Exception as e:
                     logger.error(
                         '%s: Failed to open the url %s', type(e), url, exc_info=True)
                     crawl.visited_urls.add(url)
@@ -86,12 +86,6 @@ class Crawler:
                     logger.info("Finished processing %s", url)
                     self.delay = min(
                         max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
-                    if "content-location" in head:
-                        url=head['content-location']
-                        
-
-                    for i in crawl.handler.parse(head, url, content):
-                        crawl.insert(i)
                     crawl.visited_urls.add(url)
                 crawl.dec_count(url)
 
