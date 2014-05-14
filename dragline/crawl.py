@@ -19,10 +19,13 @@ def usha1(x):
 
 class Crawl:
 
-    def __init__(self, spider):
+    def __init__(self, spider, resume):
         self.lock = BoundedSemaphore(1)
         self.url_set = RedisSet(spider._name, 'current_urls')
         self.url_queue = RedisQueue(spider._name, 'urls', json)
+        if not resume:
+            self.url_queue.clear()
+            self.url_set.clear()
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
         self.running_count = 0
         self.spider = spider
@@ -62,8 +65,8 @@ class Crawler:
         self.delay = self.min_delay + 5
 
     @classmethod
-    def load_spider(Crawler, module):
-        Crawler.crawl = Crawl(module)
+    def load_spider(Crawler, module, resume):
+        Crawler.crawl = Crawl(module, resume)
 
     def process_url(self):
         retry = 0
@@ -83,8 +86,8 @@ class Crawler:
                     time.sleep(self.delay)
                     start = time.time()
                     head, content = self.http.request(
-                        urllib.quote(url, ":/?=&"), data['method'],
-                        body=urllib.urlencode(data["method"]))
+                        urllib.quote(url, ":/?=&"), data.get('method', 'GET'),
+                        body=urllib.urlencode(data.get("form-data", {})))
                     parser_function = getattr(crawl.spider, data['callback'])
                     urls = parser_function(url, content)
                     if urls:
