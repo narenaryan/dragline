@@ -12,35 +12,30 @@ class Crawl:
 
     def __init__(self, spider):
         self.lock = BoundedSemaphore(1)
-        hash_func = lambda x: str(x['url'])
-        self.current_urls = RedisSet(spider._name, 'current_urls', hash_func)
+        self.url_set = RedisSet(spider._name, 'current_urls')
+        self.url_queue = RedisQueue(spider._name, 'urls', json)
+        self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
         self.running_count = 0
-        self.url_queue = RedisQueue(spider._name, 'urls', json, hash_func)
-        self.visited_urls = RedisSet(spider._name, 'visited', hash_func)
         self.spider = spider
-        self.allowed_urls_regex=re.compile(spider._allowed_urls_regex)
         self.insert({"url": spider._start_url, "callback": "parse"})
 
     def count(self):
         return self.running_count
 
-    def inc_count(self, url):
+    def dec_count(self):
         self.lock.acquire()
-        self.current_urls.add(url)
         self.running_count += 1
         self.lock.release()
 
-    def dec_count(self, url):
+    def inc_count(self):
         self.lock.acquire()
         self.running_count -= 1
-        self.current_urls.remove(url)
         self.lock.release()
 
-    def insert(self, url):
-        if not self.allowed_urls_regex.match(url['url']):
-            return
-        if not any(url in i for i in (self.current_urls, self.visited_urls, self.url_queue)):
-            self.url_queue.put(url)
+    def insert(self, data):
+        if self.allowed_urls_regex.match(data['url']) and data['url'] not in self.url_set:
+            self.url_set.add(data['url'])
+            self.url_queue.put(data)
 
 
 class Crawler:
@@ -67,12 +62,13 @@ class Crawler:
             if data:
                 url = data['url']
                 logger.debug("Processing url :%s", url)
-                crawl.inc_count(data)
+                crawl.inc_count()
                 try:
                     self.http.timeout = self.delay
                     time.sleep(self.delay)
                     start = time.time()
-                    head, content = self.http.request(urllib.quote(url, ":/?=&"), 'GET')
+                    head, content = self.http.request(
+                        urllib.quote(url, ":/?=&"), 'GET')
                     parser_function = getattr(crawl.spider, data['callback'])
                     urls = parser_function(url, content)
                     if urls:
@@ -84,18 +80,14 @@ class Crawler:
                     retry = retry + 1 if retry < 3 else 0
                     if retry == 0:
                         logger.warning("Rejecting %s", url)
-                        crawl.visited_urls.add(data)
                 except Exception as e:
                     logger.exception('%s: Failed to open the url %s', type(e), url)
-                    crawl.visited_urls.add(data)
                 else:
                     retry = 0
                     logger.info("Finished processing %s", url)
                     self.delay = min(
                         max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
-                    crawl.visited_urls.add(data)
-                crawl.dec_count(data)
-
+                crawl.dec_count()
             else:
                 if not crawl.count():
                     break

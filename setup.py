@@ -10,4 +10,5 @@ setup(name='Dragline',
       author_email='ashwin@quadloops.com, shimil@inzyte.com',
       url='http://www.quadloops.com',
       packages=['dragline'],
+      install_requires=['gevent']
       )
