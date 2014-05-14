@@ -5,6 +5,7 @@ import httplib2
 from redisds import RedisQueue, RedisSet
 from gevent.coros import BoundedSemaphore
 import json
+import re
 
 
 class Crawl:
@@ -17,6 +18,7 @@ class Crawl:
         self.url_queue = RedisQueue(spider._name, 'urls', json, hash_func)
         self.visited_urls = RedisSet(spider._name, 'visited', hash_func)
         self.spider = spider
+        self.allowed_urls_regex=re.compile(spider._allowed_urls_regex)
         self.insert({"url": spider._start_url, "callback": "parse"})
 
     def count(self):
@@ -35,6 +37,8 @@ class Crawl:
         self.lock.release()
 
     def insert(self, url):
+        if not self.allowed_urls_regex.match(url['url']):
+            return
         if not any(url in i for i in (self.current_urls, self.visited_urls, self.url_queue)):
             self.url_queue.put(url)
 
@@ -72,8 +76,8 @@ class Crawler:
                     parser_function = getattr(crawl.spider, data['callback'])
                     urls = parser_function(url, content)
                     if urls:
-                        for url in urls:
-                            crawl.insert(url)
+                        for i in urls:
+                            crawl.insert(i)
                     end = time.time()
                 except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
                     self.http = httplib2.Http(timeout=self.delay)
