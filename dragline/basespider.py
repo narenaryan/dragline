@@ -6,7 +6,7 @@ class BaseSpider:
     def __init__(self):
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.DEBUG)
-        self.REQUEST_HEADERS = {}
+        self.REQUEST_HEADERS = {'content-type':"application/x-www-form-urlencoded"}
         self.initialize()
 
     def parse(self, baseurl, data):

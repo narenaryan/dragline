@@ -88,6 +88,7 @@ class Crawler:
                     start = time.time()
                     data["head"], content = self.http.request(
                         url, data['method'],
+                        headers=data.get('headers', crawl.spider.REQUEST_HEADERS),
                         body=urllib.urlencode(data["form-data"]))
                     parser_function = getattr(crawl.spider, data['callback'])
                     urls = parser_function(data, content)
