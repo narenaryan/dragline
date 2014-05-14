@@ -10,8 +10,4 @@ setup(name='Dragline',
       author_email='ashwin@quadloops.com, shimil@inzyte.com',
       url='http://www.quadloops.com',
       packages=['dragline'],
-      install_requires=['redisdatastucture>=0.3'],
-      dependency_links=[
-          "http://code.quadloops.com/inzyte/redisdatastructure.git#egg=redisdatastucture"
-      ]
       )
