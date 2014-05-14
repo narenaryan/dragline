@@ -3,3 +3,6 @@
 *.txt
 *.kdev4
 .*
+*.egg-info/
+*build/
+*dist/
