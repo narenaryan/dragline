@@ -83,7 +83,8 @@ class Crawler:
                     time.sleep(self.delay)
                     start = time.time()
                     head, content = self.http.request(
-                        urllib.quote(url, ":/?=&"), 'GET')
+                        urllib.quote(url, ":/?=&"), data['method'],
+                        body=urllib.urlencode(data["method"]))
                     parser_function = getattr(crawl.spider, data['callback'])
                     urls = parser_function(url, content)
                     if urls:
