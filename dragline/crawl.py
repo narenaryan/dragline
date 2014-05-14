@@ -21,8 +21,8 @@ class Crawl:
 
     def __init__(self, spider, resume):
         self.lock = BoundedSemaphore(1)
-        self.url_set = RedisSet(spider._name, 'current_urls')
-        self.url_queue = RedisQueue(spider._name, 'urls', json)
+        self.url_set = RedisSet(spider._name, 'urlset')
+        self.url_queue = RedisQueue(spider._name, 'urlqueue', json)
         if not resume:
             self.url_queue.clear()
             self.url_set.clear()
