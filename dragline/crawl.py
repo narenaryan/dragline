@@ -6,6 +6,15 @@ from redisds import RedisQueue, RedisSet
 from gevent.coros import BoundedSemaphore
 import json
 import re
+from hashlib import sha1
+
+
+def usha1(x):
+    """sha1 with unicode support"""
+    if isinstance(x, unicode):
+        return sha1(x.encode('utf-8')).hexdigest()
+    else:
+        return sha1(x).hexdigest()
 
 
 class Crawl:
@@ -33,8 +42,14 @@ class Crawl:
         self.lock.release()
 
     def insert(self, data):
-        if self.allowed_urls_regex.match(data['url']) and data['url'] not in self.url_set:
-            self.url_set.add(data['url'])
+        method = data.get("method", "GET")
+        if method == "GET":
+            urlhash = usha1(data['url'])
+        else:
+            params = json.dumps(["method", data["url"], data["form-data"]])
+            urlhash = usha1(params)
+        if self.allowed_urls_regex.match(data['url']) and urlhash not in self.url_set:
+            self.url_set.add(urlhash)
             self.url_queue.put(data)
 
 
