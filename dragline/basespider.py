@@ -1,5 +1,5 @@
 import logging
-
+from urlparse import urljoin, urldefrag
 
 class BaseSpider:
 
@@ -17,3 +17,6 @@ class BaseSpider:
 
     def initialize(self):
         raise NotImplementedError
+
+    def abs_url(baseurl, relativeurl):
+        return urldefrag(urljoin(baseurl, url.strip()))[0]
