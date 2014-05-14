@@ -9,7 +9,11 @@ class BaseSpider:
     def parse(self,baseurl,data):
         raise NotImplementedError
 
-    def initialize(self):
+
+    def addLogHandler(self,handler):
+        self.logger.addHandler(handler)
+
+    def initialize(self): 
         raise NotImplementedError
 
 
