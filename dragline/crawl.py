@@ -86,11 +86,11 @@ class Crawler:
                     self.http.timeout = self.delay
                     time.sleep(self.delay)
                     start = time.time()
-                    head, content = self.http.request(
+                    data["head"], content = self.http.request(
                         url, data['method'],
                         body=urllib.urlencode(data["form-data"]))
                     parser_function = getattr(crawl.spider, data['callback'])
-                    urls = parser_function(url, content)
+                    urls = parser_function(data, content)
                     if urls:
                         for i in urls:
                             crawl.insert(i)
