@@ -45,11 +45,12 @@ class Crawl:
         self.lock.release()
 
     def insert(self, data):
-        method = data.get("method", "GET")
-        if method == "GET":
+        data['method'] = data.get("method", "GET")
+        data['form-data'] = data.get("form-data", {})
+        if data['method'] == "GET":
             urlhash = usha1(data['url'])
         else:
-            params = json.dumps(["method", data["url"], data["form-data"]])
+            params = json.dumps([data['method'], data["url"], data["form-data"]])
             urlhash = usha1(params)
         if self.allowed_urls_regex.match(data['url']) and urlhash not in self.url_set:
             self.url_set.add(urlhash)
@@ -86,8 +87,8 @@ class Crawler:
                     time.sleep(self.delay)
                     start = time.time()
                     head, content = self.http.request(
-                        urllib.quote(url, ":/?=&"), data.get('method', 'GET'),
-                        body=urllib.urlencode(data.get("form-data", {})))
+                        urllib.quote(url, ":/?=&"), data['method'],
+                        body=urllib.urlencode(data["form-data"]))
                     parser_function = getattr(crawl.spider, data['callback'])
                     urls = parser_function(url, content)
                     if urls:
