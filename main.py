@@ -32,7 +32,6 @@ def main():
     Crawler.load_spider(spider)
     crawlers = [Crawler() for i in xrange(5)]
     joinall([spawn(crawler.process_url) for crawler in crawlers])
-    print spider
 
 if __name__ == "__main__":
     main()

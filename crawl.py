@@ -35,12 +35,8 @@ class Crawl:
         self.lock.release()
 
     def insert(self, url):
-       
-            if not any(url in i for i in (self.current_urls, self.visited_urls, self.url_queue)):
-                self.url_queue.put(url)
-
-         # self.url_queue.put(url)
-
+        if not any(url in i for i in (self.current_urls, self.visited_urls, self.url_queue)):
+            self.url_queue.put(url)
 
 
 class Crawler:
@@ -62,28 +58,22 @@ class Crawler:
         while True:
             if not retry:
                 data = crawl.url_queue.get(timeout=2)
-                print data
             else:
                 logger.debug("Retrying %s for the %s time", data['url'], retry)
             if data:
                 url = data['url']
-                callback= data['callback']
                 logger.debug("Processing url :%s", url)
                 crawl.inc_count(data)
                 try:
-
                     self.http.timeout = self.delay
-
                     time.sleep(self.delay)
                     start = time.time()
-                    head, content = self.http.request(
-                        urllib.quote(url, ":/?=&"), 'GET')
-                    
-                    callback =  getattr(crawl.spider,callback)
-
-                    for urlinfo in callback(url,content):
-                        crawl.insert(urlinfo)
-
+                    head, content = self.http.request(urllib.quote(url, ":/?=&"), 'GET')
+                    parser_function = getattr(crawl.spider, data['callback'])
+                    urls = parser_function(url, content)
+                    if urls:
+                        for url in urls:
+                            crawl.insert(url)
                     end = time.time()
                 except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
                     self.http = httplib2.Http(timeout=self.delay)
@@ -92,8 +82,7 @@ class Crawler:
                         logger.warning("Rejecting %s", url)
                         crawl.visited_urls.add(data)
                 except Exception as e:
-                    logger.error(
-                        '%s: Failed to open the url %s', type(e), url, exc_info=True)
+                    logger.exception('%s: Failed to open the url %s', type(e), url)
                     crawl.visited_urls.add(data)
                 else:
                     retry = 0
