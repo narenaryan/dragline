@@ -4,11 +4,12 @@ from urlparse import urljoin, urldefrag
 
 class BaseSpider:
 
-    def __init__(self):
+    def __init__(self,conf={}):
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.DEBUG)
         self.REQUEST_HEADERS = {
             'content-type': "application/x-www-form-urlencoded"}
+        self._conf=conf
         self.initialize()
 
     def parse(self, baseurl, data):
