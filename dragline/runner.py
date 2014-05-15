@@ -22,7 +22,7 @@ def load_module(path, filename):
         raise ImportError
 
 
-def main(file_name, path, resume,conf={}):
+def main(filename, path, resume,conf={}):
     
     module = load_module(path, filename.strip('.py'))
     spider = getattr(module, "Spider")(conf)
