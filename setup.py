@@ -4,7 +4,7 @@ except ImportError:
     from distutils.core import setup
 
 setup(name='Dragline',
-      version='0.2',
+      version='0.3',
       description='Spider framework',
       author='Ashwin Rajeev, Shimil Rahman',
       author_email='ashwin@quadloops.com, shimil@inzyte.com',

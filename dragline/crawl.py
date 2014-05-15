@@ -2,8 +2,7 @@ import time
 import socket
 import urllib
 import httplib2
-from redisds import RedisQueue, RedisSet
-from gevent.coros import BoundedSemaphore
+import redisds
 import json
 import re
 from hashlib import sha1
@@ -20,29 +19,24 @@ def usha1(x):
 class Crawl:
 
     def __init__(self, spider, resume):
-        self.lock = BoundedSemaphore(1)
-        self.url_set = RedisSet(spider._name, 'urlset')
-        self.url_queue = RedisQueue(spider._name, 'urlqueue', json)
+        self.url_set = redisds.Set('urlset', spider._name,)
+        self.url_queue = redisds.Queue('urlqueue', spider._name, json)
+        self.running_count = redisds.Counter('count', namespace=spider._name)
         if not resume:
             self.url_queue.clear()
             self.url_set.clear()
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
-        self.running_count = 0
         self.spider = spider
         self.insert({"url": spider._start_url, "callback": "parse"})
 
     def count(self):
-        return self.running_count
-
-    def dec_count(self):
-        self.lock.acquire()
-        self.running_count += 1
-        self.lock.release()
+        return self.running_count.get()
 
     def inc_count(self):
-        self.lock.acquire()
-        self.running_count -= 1
-        self.lock.release()
+        self.running_count.inc()
+
+    def decr_count(self):
+        self.running_count.decr()
 
     def insert(self, data):
         data['method'] = data.get("method", "GET")
@@ -108,7 +102,7 @@ class Crawler:
                     logger.info("Finished processing %s", url)
                     self.delay = min(
                         max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
-                crawl.dec_count()
+                crawl.decr_count()
             else:
                 if not crawl.count():
                     break
