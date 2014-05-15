@@ -1,12 +1,14 @@
 import logging
 from urlparse import urljoin, urldefrag
 
+
 class BaseSpider:
 
     def __init__(self):
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.DEBUG)
-        self.REQUEST_HEADERS = {'content-type':"application/x-www-form-urlencoded"}
+        self.REQUEST_HEADERS = {
+            'content-type': "application/x-www-form-urlencoded"}
         self.initialize()
 
     def parse(self, baseurl, data):
@@ -18,5 +20,5 @@ class BaseSpider:
     def initialize(self):
         raise NotImplementedError
 
-    def abs_url(baseurl, relativeurl):
-        return urldefrag(urljoin(baseurl, url.strip()))[0]
+    def abs_url(self, baseurl, relativeurl):
+        return urldefrag(urljoin(baseurl, relativeurl.strip()))[0]
