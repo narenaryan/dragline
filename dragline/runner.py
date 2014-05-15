@@ -22,8 +22,8 @@ def load_module(path, filename):
         raise ImportError
 
 
-def main(abs_name, resume,conf={}):
-    path, filename = os.path.split(abs_name)
+def main(file_name, path, resume,conf={}):
+    
     module = load_module(path, filename.strip('.py'))
     spider = getattr(module, "Spider")(conf)
     Crawler.load_spider(spider, resume)
@@ -33,7 +33,7 @@ def main(abs_name, resume,conf={}):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('spider', help='spider file name')
-    parser.add_argument('--resume', dest='resume', default=False, action='store_true')
+    parser.add_argument('--resume', action='store_true')
     args = parser.parse_args()
-    filename = os.path.abspath(args.spider)
-    main(filename, args.resume)
+    path, filename = os.path.split(os.path.abspath(args.spider))
+    main(filename, path, args.resume)
