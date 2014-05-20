@@ -25,9 +25,8 @@ def load_module(path, filename):
 
 def main(filename, directory, resume, conf={}):
     module = load_module(directory, filename.strip('.py'))
-    print module
     spider = getattr(module, "Spider")(conf)
-    Crawler.load_spider(spider, resume)
+    Crawler.load_spider(spider, resume, conf)
     crawlers = [Crawler() for i in xrange(5)]
     joinall([spawn(crawler.process_url) for crawler in crawlers])
 

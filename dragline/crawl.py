@@ -18,16 +18,19 @@ def usha1(x):
 
 class Crawl:
 
-    def __init__(self, spider, resume):
+    def __init__(self, spider, settings):
         self.url_set = redisds.Set('urlset', spider._name,)
         self.url_queue = redisds.Queue('urlqueue', spider._name, json)
         self.running_count = redisds.Counter('count', namespace=spider._name)
+        self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
+        self.spider = spider
+        self.settings = settings
+
+    def start(self, resume):
         if not resume:
             self.url_queue.clear()
             self.url_set.clear()
-        self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
-        self.spider = spider
-        self.insert({"url": spider._start_url, "callback": "parse"})
+        self.insert({"url": self.spider._start_url, "callback": "parse"})
 
     def count(self):
         return self.running_count.get()
@@ -60,13 +63,14 @@ class Crawler:
         self.delay = self.min_delay + 5
 
     @classmethod
-    def load_spider(Crawler, module, resume):
-        Crawler.crawl = Crawl(module, resume)
+    def load_spider(Crawler, module, resume, settings):
+        Crawler.crawl = Crawl(module, settings)
+        Crawler.crawl.start(resume)
 
     def process_url(self):
         retry = 0
         crawl = Crawler.crawl
-        logger = crawl.spider.logger
+        logger = crawl.settings.get_logger("dragline")
         while True:
             if not retry:
                 data = crawl.url_queue.get(timeout=2)
@@ -82,7 +86,7 @@ class Crawler:
                     start = time.time()
                     data["head"], content = self.http.request(
                         url, data['method'],
-                        headers=data.get('headers', crawl.spider.REQUEST_HEADERS),
+                        headers=data.get('headers', crawl.settings.REQUEST_HEADERS),
                         body=urllib.urlencode(data["form-data"]))
                     parser_function = getattr(crawl.spider, data['callback'])
                     urls = parser_function(data, content)
