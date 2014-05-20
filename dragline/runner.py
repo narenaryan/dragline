@@ -23,16 +23,12 @@ def load_module(path, filename):
         raise ImportError
 
 
-def main(directory, resume,conf={}):
-
-    filename="main.py"
-    
+def main(filename, directory, resume, conf={}):
     module = load_module(directory, filename.strip('.py'))
     print module
     spider = getattr(module, "Spider")(conf)
     Crawler.load_spider(spider, resume)
     crawlers = [Crawler() for i in xrange(5)]
-    
     joinall([spawn(crawler.process_url) for crawler in crawlers])
 
 if __name__ == "__main__":
