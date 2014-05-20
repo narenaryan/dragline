@@ -29,7 +29,9 @@ def start(run_id):
         result = cursor.fetchall()
         if result:
             zipfile = result[0][0]
-            f = open("zipfile.zip", "w")
+            filename="/tmp/zip_%s"%(spider_id)
+
+            f = open(filename,"w")
             f.write(zipfile)
             f.close()
         else:
@@ -42,7 +44,7 @@ def start(run_id):
             pass
         if not os.path.exists(directory):
             os.makedirs(directory)
-        zf = ZipFile("zipfile.zip")
+        zf = ZipFile(filename)
         zf.extractall(directory)
         zf.close()
         files = os.walk(directory)
