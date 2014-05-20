@@ -4,6 +4,8 @@ import os
 import runner
 import MySQLdb
 
+import shutil
+
 connection = MySQLdb.connect(
     host="localhost",
     user="root",
@@ -34,6 +36,7 @@ def start(run_id):
             raise Exception
         # unzip("zipfile.zip","spiders")
         directory = "/tmp/spider_%s"%(str(spider_id))
+        shutil.rmtree(directory)
         if not os.path.exists(directory):
             os.makedirs(directory)
         zf = ZipFile("zipfile.zip")
@@ -44,6 +47,8 @@ def start(run_id):
             pass
         spider_dir = folder[0]
         runner.main("main.py", spider_dir, False)
+
+        shutil.rmtree(directory)
 
 
 
