@@ -4,17 +4,14 @@ monkey.patch_all()
 import sys
 import argparse
 import os
-
 import traceback
 import logging
 import logging.config
 import defaultsettings
 from crawl import Crawler
 
-try:
-    logging.config.fileConfig('logging.conf')
-except:
-    logging.basicConfig()
+
+logging.config.dictConfig(defaultsettings.LOGCONFIG)
 logger = logging.getLogger("dragline")
 
 

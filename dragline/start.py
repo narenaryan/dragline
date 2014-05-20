@@ -6,13 +6,15 @@ import MySQLdb
 import defaultsettings
 import shutil
 import logging
+import logging.config
 
 connection = MySQLdb.connect(
-    host="localhost",
+    host="192.168.0.20",
     user="root",
     passwd="passme",
     db="dragline")
 cursor = connection.cursor()
+logging.config.dictConfig(defaultsettings.LOGCONFIG)
 logger = logging.getLogger("dragd")
 
 

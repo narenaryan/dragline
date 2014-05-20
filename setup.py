@@ -10,8 +10,6 @@ setup(name='Dragline',
       author_email='ashwin@quadloops.com, shimil@inzyte.com',
       url='http://www.quadloops.com',
       packages=['dragline'],
-      include_package_data=True,
-      package_data={'': ['logging.conf']},
       scripts=['scripts/dragline'],
       install_requires=['gevent']
       )

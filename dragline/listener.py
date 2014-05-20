@@ -5,6 +5,7 @@ import os
 from subprocess import Popen
 import logging
 import logging.config
+from defaultsettings import LOGCONFIG
 
 
 process = None
@@ -12,7 +13,7 @@ run_id = None
 
 start = Queue(name="start", namespace="dragd", db=1)
 redisclient = StrictRedis(db=1)
-logging.config.fileConfig('logging.conf')
+logging.config.dictConfig(LOGCONFIG)
 logger = logging.getLogger("dragd")
 
 
