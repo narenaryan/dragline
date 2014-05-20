@@ -36,7 +36,11 @@ def start(run_id):
             raise Exception
         # unzip("zipfile.zip","spiders")
         directory = "/tmp/spider_%s"%(str(spider_id))
-        shutil.rmtree(directory)
+        try:
+
+            shutil.rmtree(directory)
+        except Exception as e:
+            pass
         if not os.path.exists(directory):
             os.makedirs(directory)
         zf = ZipFile("zipfile.zip")
