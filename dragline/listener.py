@@ -3,6 +3,8 @@ from redisds import Queue
 from redis import StrictRedis
 import os
 from subprocess import Popen
+import logging
+import logging.config
 
 
 process = None
@@ -10,12 +12,12 @@ run_id = None
 
 start = Queue(name="start", namespace="dragd", db=1)
 redisclient = StrictRedis(db=1)
-
+logging.config.fileConfig('logging.conf')
+logger = logging.getLogger("dragd")
 
 
 def listen_start():
     global run_id, process
-
     try:
         while True:
             run_id = start.get()
@@ -25,12 +27,11 @@ def listen_start():
             process.wait()
             run_id = None
     except Exception as e:
-        print "error in start"
+        logger.exception("failed to execute %s", run_id)
 
 
 def listen_stop():
     global process, run_id
-
     pubsub = redisclient.pubsub()
     pubsub.subscribe("dragd:stop")
     while True:
@@ -38,10 +39,9 @@ def listen_stop():
             for i in pubsub.listen():
                 if i['data'] == run_id:
                     process.terminate()
-                    print run_id, "stopped"
+                    logger.info("stopped %s run", run_id)
         except Exception as e:
-            print "error"
-            print traceback.format_exc()
+            logger.exception("Failed to stop %s", run_id)
 
 
 if __name__ == "__main__":

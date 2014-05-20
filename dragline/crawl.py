@@ -5,6 +5,7 @@ import httplib2
 import redisds
 import json
 import re
+import logging
 from hashlib import sha1
 
 
@@ -70,7 +71,7 @@ class Crawler:
     def process_url(self):
         retry = 0
         crawl = Crawler.crawl
-        logger = crawl.settings.get_logger("dragline")
+        logger = logging.getLogger("dragline")
         while True:
             if not retry:
                 data = crawl.url_queue.get(timeout=2)
@@ -78,7 +79,7 @@ class Crawler:
                 logger.debug("Retrying %s for the %s time", data['url'], retry)
             if data:
                 url = data['url']
-                logger.debug("Processing url :%s", url)
+                logger.info("Processing url :%s", url)
                 crawl.inc_count()
                 try:
                     self.http.timeout = self.delay

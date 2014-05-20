@@ -5,6 +5,7 @@ import runner
 import MySQLdb
 import defaultsettings
 import shutil
+import logging
 
 connection = MySQLdb.connect(
     host="localhost",
@@ -12,7 +13,7 @@ connection = MySQLdb.connect(
     passwd="passme",
     db="dragline")
 cursor = connection.cursor()
-logger = defaultsettings.get_logger("dragd")
+logger = logging.getLogger("dragd")
 
 
 def start(run_id):
@@ -23,15 +24,16 @@ def start(run_id):
     row = cursor.fetchall()
     if row:
         spider_id = row[0][0]
-        qry = "SELECT zipfile FROM spider_spider WHERE id=%d" % int((spider_id))
+        qry = "SELECT zipfile FROM spider_spider WHERE id=%d" % int(
+            (spider_id))
         cursor.execute(qry)
         connection.commit()
         result = cursor.fetchall()
         if result:
             zipfile = result[0][0]
-            filename="/tmp/zip_%s"%(spider_id)
+            filename = "/tmp/zip_%s" % (spider_id)
 
-            f = open(filename,"w")
+            f = open(filename, "w")
             f.write(zipfile)
             f.close()
         else:

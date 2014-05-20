@@ -9,7 +9,7 @@ import traceback
 import logging
 from crawl import Crawler
 
-logging.basicConfig()
+logger = logging.getLogger("dragline")
 
 
 def load_module(path, filename):
@@ -19,21 +19,33 @@ def load_module(path, filename):
         del sys.path[0]
         return module
     except Exception as e:
-        logging.exception("Failed to load module %s" % filename)
+        logger.exception("Failed to load module %s" % filename)
         raise ImportError
 
 
 def main(filename, directory, resume, conf={}):
     module = load_module(directory, filename.strip('.py'))
     spider = getattr(module, "Spider")(conf)
+    spider.logger = logging.getLogger(spider._name)
     Crawler.load_spider(spider, resume, conf)
     crawlers = [Crawler() for i in xrange(5)]
-    joinall([spawn(crawler.process_url) for crawler in crawlers])
+    try:
+        joinall([spawn(crawler.process_url) for crawler in crawlers])
+    except KeyboardInterrupt:
+        pass
+    except:
+        logger.exception()
+    finally:
+        logger.info("Crawling completed")
 
-if __name__ == "__main__":
+
+def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('spider', help='spider file name')
     parser.add_argument('--resume', action='store_true')
     args = parser.parse_args()
     path, filename = os.path.split(os.path.abspath(args.spider))
     main(filename, path, args.resume)
+
+if __name__ == "__main__":
+    run()
