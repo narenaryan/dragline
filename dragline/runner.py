@@ -7,8 +7,14 @@ import os
 
 import traceback
 import logging
+import logging.config
+import defaultsettings
 from crawl import Crawler
 
+try:
+    logging.config.fileConfig('logging.conf')
+except:
+    pass
 logger = logging.getLogger("dragline")
 
 
@@ -23,7 +29,7 @@ def load_module(path, filename):
         raise ImportError
 
 
-def main(filename, directory, resume, conf={}):
+def main(filename, directory, resume, conf=defaultsettings):
     module = load_module(directory, filename.strip('.py'))
     spider = getattr(module, "Spider")(conf)
     spider.logger = logging.getLogger(spider._name)
