@@ -1,12 +1,14 @@
 
-from gevent import monkey, spawn, joinall
-monkey.patch_all()
+import thread
+
+
 from redisds import Queue
+from redis import StrictRedis
 import os
 from subprocess import Popen
 
 
-
+re=StrictRedis()
 start=Queue(name="start",namespace="dragd")
 start.put("1")
 
@@ -18,41 +20,52 @@ def listen_start():
 
         while True:
 
-            print "hai"
+
             run_id=start.get()
-            print run_id
+
             global process
-            print os.getcwd()
+
+            FNULL = open(os.devnull, 'w')
             comm=["python","start.py",run_id]
 
             print comm
             process=Popen(comm)
-            process.wait()git 
-
-            print "pid there is ",pid
-            print "iam hre again"
 
 
-        print "iam breaking from the while loop some problem"
+
+            #process.wait()
+
+
+
+
+
+
+
     except Exception as e:
-        pass
+        print "error in start"
 
 
 
 def listen_stop():
 
+
     while True:
-        print "hellllllllllllllllooooooooooooooooooooooooooooo every bodyyyyyyyyyyyyyyyyyy"
-        run_id = stop.get()
-        global process
-        print process
-        print run_id
-        process.terminate()
+        try:
+            global process
+
+
+            run_id = stop.get()
+
+
+            process.terminate()
+        except Exception as e:
+            print "error"
 
 
 
 if __name__ == "__main__":
-    joinall([spawn(listen_start),spawn(listen_stop)])
+    thread.start_new_thread(listen_stop,())
+    listen_start()
 
 
 
