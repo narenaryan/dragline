@@ -33,7 +33,7 @@ def start(run_id):
         else:
             raise Exception
         # unzip("zipfile.zip","spiders")
-        directory = "spider_" + str(spider_id)
+        directory = "/tmp/spider_%s"%(str(spider_id))
         if not os.path.exists(directory):
             os.makedirs(directory)
         zf = ZipFile("zipfile.zip")
@@ -44,6 +44,7 @@ def start(run_id):
             pass
         spider_dir = folder[0]
         runner.main("main.py", spider_dir, False)
+
 
 
 if __name__ == "__main__":

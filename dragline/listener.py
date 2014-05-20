@@ -8,10 +8,14 @@ from subprocess import Popen
 process = None
 run_id = None
 
+start = Queue(name="start", namespace="dragd", db=1)
+redisclient = StrictRedis(db=1)
+
+
 
 def listen_start():
     global run_id, process
-    start = Queue(name="start", namespace="dragd", db=1)
+
     try:
         while True:
             run_id = start.get()
@@ -26,7 +30,7 @@ def listen_start():
 
 def listen_stop():
     global process, run_id
-    redisclient = StrictRedis(db=1)
+
     pubsub = redisclient.pubsub()
     pubsub.subscribe("dragd:stop")
     while True:
