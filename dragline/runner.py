@@ -14,7 +14,7 @@ from crawl import Crawler
 try:
     logging.config.fileConfig('logging.conf')
 except:
-    pass
+    logging.basicConfig()
 logger = logging.getLogger("dragline")
 
 
