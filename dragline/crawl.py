@@ -31,7 +31,9 @@ class Crawl:
         if not resume:
             self.url_queue.clear()
             self.url_set.clear()
-        self.insert({"url": self.spider._start_url, "callback": "parse"})
+        if 'callback' not in self.spider._start:
+            self.spider._start['callback'] = "parse"
+        self.insert(self.spider._start)
 
     def count(self):
         return self.running_count.get()

@@ -38,7 +38,7 @@ def main(filename, directory, resume, conf=defaultsettings):
         pass
     except:
         logger.exception()
-    finally:
+    else:
         logger.info("Crawling completed")
 
 
