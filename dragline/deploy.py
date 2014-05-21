@@ -6,6 +6,9 @@ import sys
 from json import dumps
 from httplib2 import Http
 from urllib import urlencode
+import base64
+import subprocess
+from os.path import normpath, basename
 import logging
 #logger = logging.getLogger("dragd:deploy")
 
@@ -13,7 +16,7 @@ import logging
 h = Http()
 
 
-def deploy(username,password,foldername):
+def deploy(username,password,foldername,spider_website = None):
 
     #check whether the folder is a spider
     if "main.py" in os.listdir(foldername):
@@ -64,16 +67,20 @@ def deploy(username,password,foldername):
     #zip the folder
 
 
+    chfold = os.path.split(os.path.abspath(foldername))[0]
+    print chfold
+    os.chdir(chfold)
+    comm=["zip","-r","/tmp/%s.zip"%spider_name,".", "-i",basename(normpath(foldername))+"/*.py"]
+    print comm
 
-    zipf = zipfile.ZipFile('%s.zip'%spider_name, 'w')
-    zipdir('spider_2', zipf)
-    zipf.close()
+    subprocess.call(comm)
 
-    zipf=open("%s.zip"%spider_name,"rb").read()
+    zipf=base64.encodestring(open("/tmp/%s.zip"%spider_name,"rb").read())
 
 
 
-    post_data = {'username' : username,'password' : password,'spider_name' : spider_name,'zipfile' :  zipf}
+
+    post_data = {'username' : username,'password' : password,'name' : spider_name, 'zipfile' : zipf,'website' : spider_website}
 
 
 
@@ -84,7 +91,7 @@ def deploy(username,password,foldername):
         "POST", body=urlencode(post_data),
         headers={'content-type':'application/x-www-form-urlencoded'} )
         #read zip file
-    print resp,content
+    print content
 
 
 
@@ -134,6 +141,8 @@ def load_module(path, filename):
 def zipdir(path, zip):
     for root, dirs, files in os.walk(path):
         for file in files:
+            print file
+
             zip.write(os.path.join(root, file))
 
 
