@@ -47,7 +47,7 @@ class Crawl:
 
     def decr_count(self):
         self.lock.acquire()
-        self.running_count += 1
+        self.running_count -= 1
         self.lock.release()
 
     def insert(self, data):
@@ -126,5 +126,6 @@ class Crawler:
                         max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
                     crawl.decr_count()
             else:
+
                 if not crawl.count():
                     break
