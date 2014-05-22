@@ -38,7 +38,7 @@ class Crawl:
         self.insert(self.spider._start)
 
     def count(self):
-        return self.running_count.get()
+        return self.running_count
 
     def inc_count(self):
         self.lock.acquire()
