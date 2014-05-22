@@ -37,7 +37,7 @@ def main(filename, directory, resume, conf=defaultsettings):
     except KeyboardInterrupt:
         pass
     except:
-        logger.exception()
+        logger.exception("Unable to complete")
     else:
         logger.info("Crawling completed")
 
