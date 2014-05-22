@@ -1,15 +1,13 @@
 import os
 import inspect
-import zipfile
-import sys
-from json import dumps
+
 from httplib2 import Http
 from urllib import urlencode
 import base64
 import subprocess
 from os.path import normpath, basename
 from runner import load_module
-
+import argparse
 
 h = Http()
 
@@ -69,8 +67,7 @@ def deploy(url, username, password, foldername, spider_website=None):
 
 
 if __name__ == "__main__":
-    print deploy("http://localhost:8000/deploy/", "shimil",
-                 "passme", "../../samplespider/NetaPorter/")
+
 
     parser = argparse.ArgumentParser()
     parser.add_argument('url', type=string)
@@ -79,4 +76,5 @@ if __name__ == "__main__":
     parser.add_argument('spider_dir', type=string)
 
     args = parser.parse_args()
-    start(args.url,args.username,args.password,args.spider_dir)
+    result=deploy(args.url,args.username,args.password,args.spider_dir)
+    print result
