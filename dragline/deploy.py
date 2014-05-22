@@ -58,7 +58,9 @@ def deploy(url, username, password, foldername, spider_website=None):
     subprocess.call(comm)
     zipf = base64.encodestring(open("/tmp/%s.zip" % spider_name, "rb").read())
     post_data = {'username': username, 'password': password, 'name':
-                 spider_name, 'zipfile': zipf, 'website': spider_website}
+                 spider_name, 'zipfile': zipf}
+    if spider_website:
+        post_data['website'] = spider_website
     headers = {'content-type': 'application/x-www-form-urlencoded'}
     resp, content = h.request(
         url, "POST", body=urlencode(post_data), headers=headers)
@@ -67,5 +69,5 @@ def deploy(url, username, password, foldername, spider_website=None):
 
 
 if __name__ == "__main__":
-    print deploy("http://192.168.0.20:8000/deploy/", "shimil",
+    print deploy("http://localhost:8000/deploy/", "shimil",
                  "passme", "../../samplespider/NetaPorter/")
