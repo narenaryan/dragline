@@ -1,6 +1,5 @@
 import os
 import inspect
-
 from httplib2 import Http
 from urllib import urlencode
 import base64
@@ -8,8 +7,6 @@ import subprocess
 from os.path import normpath, basename
 from runner import load_module
 import argparse
-
-h = Http()
 
 
 def zipdir(path, zip):
@@ -60,6 +57,7 @@ def deploy(url, username, password, foldername, spider_website=None):
     if spider_website:
         post_data['website'] = spider_website
     headers = {'content-type': 'application/x-www-form-urlencoded'}
+    h = Http()
     resp, content = h.request(
         url, "POST", body=urlencode(post_data), headers=headers)
     # read zip file
@@ -67,14 +65,12 @@ def deploy(url, username, password, foldername, spider_website=None):
 
 
 if __name__ == "__main__":
-
-
     parser = argparse.ArgumentParser()
-    parser.add_argument('url', type=string)
-    parser.add_argument('username', type=string)
-    parser.add_argument('password', type=string)
-    parser.add_argument('spider_dir', type=string)
+    parser.add_argument('url')
+    parser.add_argument('username')
+    parser.add_argument('password')
+    parser.add_argument('spider_dir')
 
     args = parser.parse_args()
-    result=deploy(args.url,args.username,args.password,args.spider_dir)
+    result = deploy(args.url, args.username, args.password, args.spider_dir)
     print result

@@ -7,6 +7,7 @@ import json
 import re
 import logging
 from hashlib import sha1
+from gevent.coros import BoundedSemaphore
 
 
 def usha1(x):
@@ -20,9 +21,10 @@ def usha1(x):
 class Crawl:
 
     def __init__(self, spider, settings):
+        self.lock = BoundedSemaphore(1)
         self.url_set = redisds.Set('urlset', spider._name,)
         self.url_queue = redisds.Queue('urlqueue', spider._name, json)
-        self.running_count = redisds.Counter('count', namespace=spider._name)
+        self.running_count = 0
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
         self.spider = spider
         self.settings = settings
@@ -39,10 +41,14 @@ class Crawl:
         return self.running_count.get()
 
     def inc_count(self):
-        self.running_count.inc()
+        self.lock.acquire()
+        self.running_count += 1
+        self.lock.release()
 
     def decr_count(self):
-        self.running_count.decr()
+        self.lock.acquire()
+        self.running_count += 1
+        self.lock.release()
 
     def insert(self, data):
         data['method'] = data.get("method", "GET")
@@ -50,7 +56,8 @@ class Crawl:
         if data['method'] == "GET":
             urlhash = usha1(data['url'])
         else:
-            params = json.dumps([data['method'], data["url"], data["form-data"]])
+            params = json.dumps(
+                [data['method'], data["url"], data["form-data"]])
             urlhash = usha1(params)
         if self.allowed_urls_regex.match(data['url']) and urlhash not in self.url_set:
             self.url_set.add(urlhash)
@@ -82,22 +89,24 @@ class Crawler:
             if data:
                 url = data['url']
                 logger.info("Processing url :%s", url)
-                crawl.inc_count()
+                if not retry:
+                    crawl.inc_count()
                 try:
                     self.http.timeout = self.delay
                     time.sleep(self.delay)
                     start = time.time()
                     data["head"], content = self.http.request(
                         url, data['method'],
-                        headers=data.get('headers', crawl.settings.REQUEST_HEADERS),
+                        headers=data.get(
+                            'headers', crawl.settings.REQUEST_HEADERS),
                         body=urllib.urlencode(data["form-data"]))
                     try:
-
-                        parser_function = getattr(crawl.spider, data['callback'])
+                        parser_function = getattr(
+                            crawl.spider, data['callback'])
                         urls = parser_function(data, content)
                     except:
-                        logger.exception("failed to execute callback function")
-                        urls=None
+                        logger.exception("Failed to execute callback function")
+                        urls = None
                     if urls:
                         for i in urls:
                             crawl.insert(i)
@@ -108,13 +117,14 @@ class Crawler:
                     if retry == 0:
                         logger.warning("Rejecting %s", url)
                 except Exception as e:
-                    logger.exception('%s: Failed to open the url %s', type(e), url)
+                    logger.exception(
+                        '%s: Failed to open the url %s', type(e), url)
                 else:
                     retry = 0
                     logger.info("Finished processing %s", url)
                     self.delay = min(
                         max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
-                crawl.decr_count()
+                    crawl.decr_count()
             else:
                 if not crawl.count():
                     break
