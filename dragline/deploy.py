@@ -71,3 +71,12 @@ def deploy(url, username, password, foldername, spider_website=None):
 if __name__ == "__main__":
     print deploy("http://localhost:8000/deploy/", "shimil",
                  "passme", "../../samplespider/NetaPorter/")
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('url', type=string)
+    parser.add_argument('username', type=string)
+    parser.add_argument('password', type=string)
+    parser.add_argument('spider_dir', type=string)
+
+    args = parser.parse_args()
+    start(args.url,args.username,args.password,args.spider_dir)
