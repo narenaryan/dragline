@@ -1,4 +1,3 @@
-
 import os
 import inspect
 import zipfile
@@ -9,147 +8,64 @@ from urllib import urlencode
 import base64
 import subprocess
 from os.path import normpath, basename
-import logging
-#logger = logging.getLogger("dragd:deploy")
+from runner import load_module
 
 
 h = Http()
-
-
-def deploy(username,password,foldername,spider_website = None):
-
-    #check whether the folder is a spider
-    if "main.py" in os.listdir(foldername):
-        pass
-    else:
-        print "Not a valid spider"
-        return
-
-    #check if the main.py contain a spider class
-    module = load_module(foldername,"main")
-    #check if main.py contain a spider class
-    spider=None
-    try:
-
-        spider = getattr(module,"Spider")
-    except Exception as e:
-        pass
-
-    if spider:
-        pass
-        #check if spider is a class
-    else:
-        print "Spider class not found"
-        return
-
-    if inspect.isclass(spider):
-        pass
-    else:
-        print "Spider class not found"
-        return
-
-    #create a spider object and check whether it contain required attributes
-
-    spider_object=spider(None)
-
-    try:
-        if spider_object._name and spider_object._start_url and spider_object._allowed_urls_regex and spider_object.parse:
-            spider_name=spider_object._name
-            pass
-        else:
-            print "required attributes not found in spider"
-            return
-
-    except Exception as e:
-        print "Spider deploying failed"
-        return
-
-    #zip the folder
-
-
-    chfold = os.path.split(os.path.abspath(foldername))[0]
-    print chfold
-    os.chdir(chfold)
-    comm=["zip","-r","/tmp/%s.zip"%spider_name,".", "-i",basename(normpath(foldername))+"/*.py"]
-    print comm
-
-    subprocess.call(comm)
-
-    zipf=base64.encodestring(open("/tmp/%s.zip"%spider_name,"rb").read())
-
-
-
-
-    post_data = {'username' : username,'password' : password,'name' : spider_name, 'zipfile' : zipf,'website' : spider_website}
-
-
-
-
-
-
-    resp, content = h.request("http://192.168.0.11:8000/deploy/",
-        "POST", body=urlencode(post_data),
-        headers={'content-type':'application/x-www-form-urlencoded'} )
-        #read zip file
-    print content
-
-
-
-
-
-
-     #upload the spider into database
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def load_module(path, filename):
-    try:
-
-        sys.path.insert(0, path)
-
-
-        module = __import__(filename)
-        del sys.path[0]
-        return module
-    except Exception as e:
-        print e.message
-        #logger.exception("Failed to load module %s" % filename)
-        raise ImportError
-
-
-
 
 
 def zipdir(path, zip):
     for root, dirs, files in os.walk(path):
         for file in files:
             print file
-
             zip.write(os.path.join(root, file))
 
 
+def deploy(url, username, password, foldername, spider_website=None):
+    # check whether the folder is a spider
+    if not "main.py" in os.listdir(foldername):
+        return "Not a valid spider"
+
+    # check if the main.py contain a spider class
+    module = load_module(foldername, "main")
+    # check if main.py contain a spider class
+    try:
+        spider = getattr(module, "Spider")
+    except Exception as e:
+        return "Spider class not found"
+
+    if not inspect.isclass(spider):
+        return "Spider class not found"
+
+    # create a spider object and check whether it contain required attributes
+    spider_object = spider(None)
+
+    try:
+        if spider_object._name and spider_object._start and spider_object._allowed_urls_regex and spider_object.parse:
+            spider_name = spider_object._name
+        else:
+            return "required attributes not found in spider"
+
+    except Exception as e:
+        print e
+        return "Spider deploying failed"
+
+    # zip the folder
+    chfold = os.path.split(os.path.abspath(foldername))[0]
+    os.chdir(chfold)
+    comm = ["zip", "-r", "/tmp/%s.zip" %
+            spider_name, ".", "-i", basename(normpath(foldername)) + "/*.py"]
+    subprocess.call(comm)
+    zipf = base64.encodestring(open("/tmp/%s.zip" % spider_name, "rb").read())
+    post_data = {'username': username, 'password': password, 'name':
+                 spider_name, 'zipfile': zipf, 'website': spider_website}
+    headers = {'content-type': 'application/x-www-form-urlencoded'}
+    resp, content = h.request(
+        url, "POST", body=urlencode(post_data), headers=headers)
+    # read zip file
+    return content
 
 
 if __name__ == "__main__":
-    deploy("manu","passme","../../samplespider/NetaPorter/")
-
-
-
+    print deploy("http://192.168.0.20:8000/deploy/", "shimil",
+                 "passme", "../../samplespider/NetaPorter/")
