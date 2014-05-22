@@ -91,8 +91,13 @@ class Crawler:
                         url, data['method'],
                         headers=data.get('headers', crawl.settings.REQUEST_HEADERS),
                         body=urllib.urlencode(data["form-data"]))
-                    parser_function = getattr(crawl.spider, data['callback'])
-                    urls = parser_function(data, content)
+                    try:
+
+                        parser_function = getattr(crawl.spider, data['callback'])
+                        urls = parser_function(data, content)
+                    except:
+                        logger.exception("failed to execute callback function")
+                        urls=None
                     if urls:
                         for i in urls:
                             crawl.insert(i)
