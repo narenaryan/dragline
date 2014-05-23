@@ -122,4 +122,4 @@ class Crawler:
             else:
                 if crawl.count() == 0:
                     break
-                logger.info("Waiting for %s", crawl.count())
+                logger.debug("Waiting for %s", crawl.count())
