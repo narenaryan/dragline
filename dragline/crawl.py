@@ -7,7 +7,6 @@ import json
 import re
 import logging
 from hashlib import sha1
-from gevent.coros import BoundedSemaphore
 
 
 def usha1(x):
@@ -21,16 +20,15 @@ def usha1(x):
 class Crawl:
 
     def __init__(self, spider, settings):
-        self.lock = BoundedSemaphore(1)
         self.url_set = redisds.Set('urlset', spider._name,)
         self.url_queue = redisds.Queue('urlqueue', spider._name, json)
-        self.running_count = 0
+        self.running_count = redisds.Counter("count", namespace=spider._name)
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
         self.spider = spider
         self.settings = settings
 
     def start(self, resume):
-        if not resume:
+        if not resume and self.count() == 0:
             self.url_queue.clear()
             self.url_set.clear()
         if 'callback' not in self.spider._start:
@@ -38,17 +36,13 @@ class Crawl:
         self.insert(self.spider._start)
 
     def count(self):
-        return self.running_count
+        return self.running_count.get()
 
     def inc_count(self):
-        self.lock.acquire()
-        self.running_count += 1
-        self.lock.release()
+        self.running_count.inc()
 
     def decr_count(self):
-        self.lock.acquire()
-        self.running_count -= 1
-        self.lock.release()
+        self.running_count.decr()
 
     def insert(self, data):
         data['method'] = data.get("method", "GET")
@@ -56,8 +50,7 @@ class Crawl:
         if data['method'] == "GET":
             urlhash = usha1(data['url'])
         else:
-            params = json.dumps(
-                [data['method'], data["url"], data["form-data"]])
+            params = json.dumps([data['method'], data["url"], data["form-data"]])
             urlhash = usha1(params)
         if self.allowed_urls_regex.match(data['url']) and urlhash not in self.url_set:
             self.url_set.add(urlhash)
@@ -124,8 +117,9 @@ class Crawler:
                     logger.info("Finished processing %s", url)
                     self.delay = min(
                         max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
+                if not retry:
                     crawl.decr_count()
             else:
-
-                if not crawl.count():
+                if crawl.count() == 0:
                     break
+                logger.info("Waiting for %s", crawl.count())
