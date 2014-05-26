@@ -81,6 +81,7 @@ class Crawler:
                 logger.debug("Retrying %s for the %s time", data['url'], retry)
             if data:
                 url = data['url']
+
                 logger.info("Processing url :%s", url)
                 if not retry:
                     crawl.inc_count()
@@ -96,7 +97,11 @@ class Crawler:
                     try:
                         parser_function = getattr(
                             crawl.spider, data['callback'])
-                        urls = parser_function(data, content)
+                        try:
+                            meta = data['meta']
+                        except:
+                            meta = None
+                        urls = parser_function(data, content,meta)
                     except:
                         logger.exception("Failed to execute callback function")
                         urls = None
