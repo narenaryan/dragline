@@ -36,7 +36,7 @@ def deploy(url, username, password, foldername, spider_website=None):
     spider_object = spider(None)
 
     try:
-        if spider_object._name and spider_object._start and spider_object._allowed_urls_regex and spider_object.parse:
+        if spider_object._name and spider_object._start and spider_object._allowed_urls_regex:
             spider_name = spider_object._name
         else:
             return "required attributes not found in spider"
