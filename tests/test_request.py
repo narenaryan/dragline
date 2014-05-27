@@ -5,9 +5,9 @@ class RequestTest(unittest.TestCase):
 
     def test_request(self):
         req = Http()
-        content = req.request("http://www.example.org")
+        st,content = req.request("http://www.example.org")
         reqst = Request("http://www.example.org")
-        content_r = reqst.send()
+        st,content_r = reqst.send()
         self.assertEqual(content,content_r)
     #
 
