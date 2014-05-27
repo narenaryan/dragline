@@ -20,13 +20,13 @@ class Crawl:
         self.spider = spider
         self.settings = settings
 
-    def start(self, resume):
+    def start(self, resume, request):
         if not resume and self.count() == 0:
             self.url_queue.clear()
             self.url_set.clear()
-        if 'callback' not in self.spider._start:
-            self.spider._start['callback'] = "parse"
-        self.insert(self.spider._start)
+        if request.callback is None:
+            request.callback = "parse"
+        self.insert(request)
 
     def count(self):
         return self.running_count.get()
@@ -38,6 +38,8 @@ class Crawl:
         self.running_count.decr()
 
     def insert(self, request, check=True):
+        if not isinstance(request, Request):
+            return
         reqhash = request.get_unique_id()
         if check:
             if not self.allowed_urls_regex.match(request.url):
@@ -50,16 +52,10 @@ class Crawl:
 
 class Crawler:
 
-    def __init__(self):
-        self.http = httplib2.Http(timeout=350)
-        self.min_delay = 0.5
-        self.max_delay = 300
-        self.delay = self.min_delay + 5
-
     @classmethod
     def load_spider(Crawler, module, resume, settings):
         Crawler.crawl = Crawl(module, settings)
-        Crawler.crawl.start(resume)
+        Crawler.crawl.start(resume, module._start)
 
     def process_url(self):
         retry = 0
@@ -70,10 +66,19 @@ class Crawler:
             if not retry:
                 request = crawl.url_queue.get(timeout=2)
             if request:
-                logger.info("Processing url :%s for %s time", request.url, request.retry)
+                logger.info("Processing %s", request)
                 crawl.inc_count()
                 try:
-                    requests = request.send()
+                    response, content = request.send()
+                    try:
+                        callback = getattr(crawl.spider, request.callback)
+                        if request.meta:
+                            requests = callback(response, content, request.meta)
+                        else:
+                            requests = callback(response, content)
+                    except:
+                        logging.exception("Failed to execute callback")
+                        requests = None
                     if requests:
                         for i in requests:
                             crawl.insert(i)
@@ -84,10 +89,9 @@ class Crawler:
                     else:
                         crawl.insert(request, False)
                 except Exception as e:
-                    logger.exception('%s: Failed to open the url %s', type(e),
-                                     request.url)
+                    logger.exception('Failed to open the url %s', request.url)
                 else:
-                    logger.info("Finished processing %s", request.url)
+                    logger.info("Finished processing %s", request)
                 finally:
                     crawl.decr_count()
             else:

@@ -27,6 +27,9 @@ class Request:
         self.form_data = form_data
         self.http = httplib2.Http()
 
+    def __str__(self):
+        return self.get_unique_id(False)
+
     def usha1(self, x):
         """sha1 with unicode support"""
         if isinstance(x, unicode):
@@ -40,22 +43,22 @@ class Request:
         try:
             response, content = self.http.request(
                 self.url, self.method, self.form_data)
+            response['url'] = self.url
         except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
             self.retry += 1
             raise RequestError(e.message)
-        if self.callback:
-            if self.meta:
-                requests = self.callback(response, content, self.meta)
-            else:
-                requests = self.callback(response, content)
-            return requests
         return response, content
 
-    def get_unique_id(self):
-        formdata = urlencode(
-            {i: j for i, j in sorted(self.form_data.items(), key=lambda t: t[0])})
-        str = self.method + ":" + self.url + ":" + formdata
-        return self.usha1(str)
+    def get_unique_id(self, hashing=True):
+        request = self.method + ":" + self.url
+        if self.form_data:
+            request += ":" + urlencode(
+                {i: j for i, j in sorted(self.form_data.items(),
+                                         key=lambda t: t[0])})
+        if hashing:
+            return self.usha1(request)
+        else:
+            return request
 
     @classmethod
     def updatedelay(cls, end, start):
