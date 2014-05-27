@@ -3,7 +3,7 @@ REQUEST_HEADERS = {
     "accept": "text/html",
     'content-type': "application/x-www-form-urlencoded"
 }
-
+MAX_RETRY = 3
 LOGCONFIG = {
     'version': 1,
     'disable_existing_loggers': False,

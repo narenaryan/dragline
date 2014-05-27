@@ -1,22 +1,20 @@
 import time
-
-
-
-import redisds
-import json
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 import re
 import logging
 
-
-
-
+import redisds
+from request import Request, RequestError
 
 
 class Crawl:
 
     def __init__(self, spider, settings):
         self.url_set = redisds.Set('urlset', spider._name,)
-        self.url_queue = redisds.Queue('urlqueue', spider._name, json)
+        self.url_queue = redisds.Queue('urlqueue', spider._name, pickle)
         self.running_count = redisds.Counter("count", namespace=spider._name)
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
         self.spider = spider
@@ -39,17 +37,15 @@ class Crawl:
     def decr_count(self):
         self.running_count.decr()
 
-    def insert(self, data):
-        data['method'] = data.get("method", "GET")
-        data['form-data'] = data.get("form-data", {})
-        if data['method'] == "GET":
-            urlhash = usha1(data['url'])
-        else:
-            params = json.dumps([data['method'], data["url"], data["form-data"]])
-            urlhash = usha1(params)
-        if self.allowed_urls_regex.match(data['url']) and urlhash not in self.url_set:
-            self.url_set.add(urlhash)
-            self.url_queue.put(data)
+    def insert(self, request, check=True):
+        reqhash = request.get_unique_id()
+        if check:
+            if not self.allowed_urls_regex.match(request.url):
+                return
+            elif reqhash in self.url_set:
+                return
+        self.url_set.add(reqhash)
+        self.url_queue.put(request)
 
 
 class Crawler:
@@ -69,55 +65,30 @@ class Crawler:
         retry = 0
         crawl = Crawler.crawl
         logger = logging.getLogger("dragline")
+        settings = crawl.settings
         while True:
             if not retry:
-                data = crawl.url_queue.get(timeout=2)
-            else:
-                logger.debug("Retrying %s for the %s time", data['url'], retry)
-            if data:
-                url = data['url']
-
-                logger.info("Processing url :%s", url)
-                if not retry:
-                    crawl.inc_count()
+                request = crawl.url_queue.get(timeout=2)
+            if request:
+                logger.info("Processing url :%s for %s time", request.url, request.retry)
+                crawl.inc_count()
                 try:
-                    self.http.timeout = self.delay
-                    time.sleep(self.delay)
-                    start = time.time()
-                    data["head"], content = self.http.request(
-                        url, data['method'],
-                        headers=data.get(
-                            'headers', crawl.settings.REQUEST_HEADERS),
-                        body=urllib.urlencode(data["form-data"]))
-                    try:
-                        parser_function = getattr(
-                            crawl.spider, data['callback'])
-                        try:
-                            meta = data['meta']
-                        except:
-                            meta = None
-                        urls = parser_function(data, content,meta)
-                    except:
-                        logger.exception("Failed to execute callback function")
-                        urls = None
-                    if urls:
-                        for i in urls:
+                    requests = request.send()
+                    if requests:
+                        for i in requests:
                             crawl.insert(i)
-                    end = time.time()
-                except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
-                    self.http = httplib2.Http(timeout=self.delay)
-                    retry = retry + 1 if retry < 3 else 0
-                    if retry == 0:
-                        logger.warning("Rejecting %s", url)
+                except RequestError as e:
+                    request.retry = request.retry + 1
+                    if retry == settings.MAX_RETRY:
+                        logger.warning("Rejecting %s", request.url)
+                    else:
+                        crawl.insert(request, False)
                 except Exception as e:
-                    logger.exception(
-                        '%s: Failed to open the url %s', type(e), url)
+                    logger.exception('%s: Failed to open the url %s', type(e),
+                                     request.url)
                 else:
-                    retry = 0
-                    logger.info("Finished processing %s", url)
-                    self.delay = min(
-                        max(self.min_delay, end - start, (self.delay + end - start) / 2.0), self.max_delay)
-                if not retry:
+                    logger.info("Finished processing %s", request.url)
+                finally:
                     crawl.decr_count()
             else:
                 if crawl.count() == 0:
