@@ -23,6 +23,7 @@ class Request:
         self.form_data = form_data
         self.http = httplib2.Http()
 
+
     def usha1(self, x):
         """sha1 with unicode support"""
         if isinstance(x, unicode):
@@ -50,5 +51,4 @@ class Request:
         formdata =  urlencode({i: j for i,j in  sorted(self.form_data.items(),key =lambda t: t[0])})
         str = self.method+":"+self.url+":"+formdata
         return self.usha1(str)
-
 

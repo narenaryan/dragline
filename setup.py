@@ -11,5 +11,7 @@ setup(name='Dragline',
       url='http://www.quadloops.com',
       packages=['dragline'],
       scripts=['scripts/dragline'],
-      install_requires=['gevent', 'httplib2']
+      install_requires=['gevent', 'httplib2'],
+      test_suite = 'tests'
+
       )
