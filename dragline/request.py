@@ -1,7 +1,8 @@
 import httplib2
 from urllib import urlencode
 import socket
-
+from hashlib import sha1
+import collections
 
 class RequestError(Exception):
     def __init__(self, value):
@@ -22,6 +23,14 @@ class Request:
         self.form_data = form_data
         self.http = httplib2.Http()
 
+    def usha1(self, x):
+        """sha1 with unicode support"""
+        if isinstance(x, unicode):
+            return sha1(x.encode('utf-8')).hexdigest()
+        else:
+            return sha1(x).hexdigest()
+
+
     def send(self):
         if self.form_data:
             self.form_data = urlencode(self.form_data)
@@ -36,3 +45,10 @@ class Request:
             else:
                 self.callback(response, content)
         return response, content
+
+    def get_unique_id(self):
+        formdata =  urlencode({i: j for i,j in  sorted(self.form_data.items(),key =lambda t: t[0])})
+        str = self.method+":"+self.url+":"+formdata
+        return self.usha1(str)
+
+
