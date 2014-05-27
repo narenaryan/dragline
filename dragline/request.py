@@ -31,7 +31,6 @@ class Request:
         self.form_data = form_data
         if headers is not None:
             self.headers = headers
-        self.http = httplib2.Http()
 
     def __str__(self):
         return self.get_unique_id(False)
@@ -44,11 +43,11 @@ class Request:
             return sha1(x).hexdigest()
 
     def send(self):
-        if self.form_data:
-            self.form_data = urlencode(self.form_data)
+        form_data = urlencode(self.form_data) if self.form_data else None
         try:
-            response, content = self.http.request(
-                self.url, self.method, self.form_data, self.headers)
+            http = httplib2.Http()
+            response, content = http.request(
+                self.url, self.method, form_data, self.headers)
             response['url'] = self.url
         except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
             self.retry += 1

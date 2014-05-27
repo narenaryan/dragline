@@ -1,8 +1,5 @@
 import time
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
+import json
 import re
 import logging
 
@@ -14,7 +11,7 @@ class Crawl:
 
     def __init__(self, spider, settings):
         self.url_set = redisds.Set('urlset', spider._name,)
-        self.url_queue = redisds.Queue('urlqueue', spider._name, pickle)
+        self.url_queue = redisds.Queue('urlqueue', spider._name, json)
         self.running_count = redisds.Counter("count", namespace=spider._name)
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
         self.spider = spider
@@ -47,7 +44,7 @@ class Crawl:
             elif reqhash in self.url_set:
                 return
         self.url_set.add(reqhash)
-        self.url_queue.put(request)
+        self.url_queue.put(request.__dict__)
 
 
 class Crawler:
@@ -66,6 +63,7 @@ class Crawler:
             if not retry:
                 request = crawl.url_queue.get(timeout=2)
             if request:
+                request = Request(**request)
                 logger.info("Processing %s", request)
                 crawl.inc_count()
                 try:
