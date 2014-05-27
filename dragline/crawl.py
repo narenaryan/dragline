@@ -1,20 +1,15 @@
 import time
-import socket
-import urllib
-import httplib2
+
+
+
 import redisds
 import json
 import re
 import logging
-from hashlib import sha1
 
 
-def usha1(x):
-    """sha1 with unicode support"""
-    if isinstance(x, unicode):
-        return sha1(x.encode('utf-8')).hexdigest()
-    else:
-        return sha1(x).hexdigest()
+
+
 
 
 class Crawl:
