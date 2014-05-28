@@ -9,7 +9,7 @@ class HtmlParser:
         self.data = etree.HTML(content)
 
     def extract_urls(self, xpath):
-        return (self.abs_url(self.url, url) for url in self.data.xpath(xpath + '//a/@href'))
+        return [self.abs_url(self.url, url) for url in self.data.xpath(xpath + '//a/@href')]
 
     def extract(self, xpath):
         return self.data.xpath(xpath)
