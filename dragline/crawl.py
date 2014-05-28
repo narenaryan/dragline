@@ -56,18 +56,15 @@ class Crawler():
     def process_url(self):
         crawl = Crawler.crawl
         logger = logging.getLogger("dragline")
+        request = Request(None)
         while True:
-            request = crawl.url_queue.get(timeout=2)
-            if request:
-                request = Request(**request)
+            args = crawl.url_queue.get(timeout=2)
+            if args:
+                request._set_state(args)
                 logger.info("Processing %s", request)
                 crawl.inc_count()
                 try:
-
-
                     response, content = request.send()
-
-
                     try:
                         callback = getattr(crawl.spider, request.callback)
                         if request.meta:
@@ -81,13 +78,13 @@ class Crawler():
                         for i in requests:
                             crawl.insert(i)
                 except RequestError as e:
-                    request.RETRY = request.RETRY + 1
-                    if request.RETRY == crawl.MAX_RETRY:
-                        logger.warning("Rejecting %s", request.url)
+                    request.RETRY += 1
+                    if request.RETRY >= crawl.MAX_RETRY:
+                        logger.warning("Rejecting %s", request)
                     else:
                         crawl.insert(request, False)
                 except Exception as e:
-                    logger.exception('Failed to open the url %s', request.url)
+                    logger.exception('Failed to open the url %s', request)
                 else:
                     logger.info("Finished processing %s", request)
                 finally:
