@@ -35,15 +35,15 @@ class Settings:
 
 
 class RequestSettings(Settings):
-    headers = {
+    HEADERS = {
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.152 Safari/537.36",
         "accept": "text/html",
         'content-type': "application/x-www-form-urlencoded"
     }
-    retry = 0
-    delay = 0.5
-    min_delay = 0.5
-    max_delay = 60
+    RETRY = 0
+    DELAY = 0.5
+    MIN_DELAY = 0.5
+    MAX_DELAY = 60
 
 
 class CrawlSettings(Settings):

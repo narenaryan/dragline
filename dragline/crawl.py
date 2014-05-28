@@ -81,8 +81,8 @@ class Crawler():
                         for i in requests:
                             crawl.insert(i)
                 except RequestError as e:
-                    request.retry = request.retry + 1
-                    if request.retry == crawl.MAX_RETRY:
+                    request.RETRY = request.RETRY + 1
+                    if request.RETRY == crawl.MAX_RETRY:
                         logger.warning("Rejecting %s", request.url)
                     else:
                         crawl.insert(request, False)

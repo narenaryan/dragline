@@ -11,6 +11,10 @@ class HtmlParser:
     def extract_urls(self, xpath):
         return [self.abs_url(self.url, url) for url in self.data.xpath(xpath + '//a/@href')]
 
+    def xpath(self,xpath):
+        return self.data.xpath(xpath)
+
+
     def extract(self, xpath):
         return self.data.xpath(xpath)
 

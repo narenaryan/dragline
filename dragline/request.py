@@ -25,7 +25,7 @@ class Request(RequestSettings):
         self.meta = meta
         self.form_data = form_data
         if headers is not None:
-            self.headers = headers
+            self.HEADERS = headers
 
     def __str__(self):
         return self.get_unique_id(False)
@@ -41,16 +41,16 @@ class Request(RequestSettings):
         form_data = urlencode(self.form_data) if self.form_data else None
         try:
 
-            time.sleep(self.delay)
+            time.sleep(self.DELAY)
             start = time.time()
             http = httplib2.Http()
             response, content = http.request(
-                self.url, self.method, form_data, self.headers)
+                self.url, self.method, form_data, self.HEADERS)
             response['url'] = self.url
             end = time.time()
             self.updatedelay(end,start)
         except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
-            self.retry += 1
+            self.RETRY += 1
             raise RequestError(e.message)
         return response, content
 
@@ -68,5 +68,5 @@ class Request(RequestSettings):
     @classmethod
     def updatedelay(cls, end, start):
         delay = end - start
-        cls.delay = min(max(cls.min_delay, delay, (cls.delay + delay) / 2.0), cls.max_delay)
+        cls.DELAY = min(max(cls.MIN_DELAY, delay, (cls.DELAY + delay) / 2.0), cls.MAX_DELAY)
 
