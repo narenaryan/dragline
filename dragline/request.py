@@ -2,6 +2,7 @@ import httplib2
 from urllib import urlencode
 import socket
 from hashlib import sha1
+from defaultsettings import RequestSettings
 
 
 class RequestError(Exception):
@@ -13,15 +14,7 @@ class RequestError(Exception):
         return repr(self.value)
 
 
-class Request:
-    retry = 0
-    delay = 0.5
-    min_delay = 0.5
-    max_delay = 60
-    headers = {
-        "accept": "text/html",
-        'content-type': "application/x-www-form-urlencoded"
-    }
+class Request(RequestSettings):
 
     def __init__(self, url, method="GET", callback=None, meta=None, form_data=None, headers=None):
         self.method = method

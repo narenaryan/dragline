@@ -7,11 +7,11 @@ import os
 import traceback
 import logging
 import logging.config
-import defaultsettings
+from defaultsettings import SpiderSettings
 from crawl import Crawler
 
 
-logging.config.dictConfig(defaultsettings.LOGCONFIG)
+logging.config.dictConfig(SpiderSettings.LOGCONFIG)
 logger = logging.getLogger("dragline")
 
 
@@ -26,11 +26,11 @@ def load_module(path, filename):
         raise ImportError
 
 
-def main(filename, directory, resume, conf=defaultsettings):
+def main(filename, directory, resume, conf=SpiderSettings()):
     module = load_module(directory, filename.strip('.py'))
     spider = getattr(module, "Spider")(conf)
     spider.logger = logging.getLogger(spider._name)
-    Crawler.load_spider(spider, resume, conf)
+    Crawler.load_spider(spider, resume)
     crawlers = [Crawler() for i in xrange(5)]
     try:
         joinall([spawn(crawler.process_url) for crawler in crawlers])

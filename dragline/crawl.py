@@ -2,20 +2,19 @@ import time
 import json
 import re
 import logging
-
+from defaultsettings import CrawlSettings
 import redisds
 from request import Request, RequestError
 
 
-class Crawl:
+class Crawl(CrawlSettings):
 
-    def __init__(self, spider, settings):
+    def __init__(self, spider):
         self.url_set = redisds.Set('urlset', spider._name,)
         self.url_queue = redisds.Queue('urlqueue', spider._name, json)
         self.running_count = redisds.Counter("count", namespace=spider._name)
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
         self.spider = spider
-        self.settings = settings
 
     def start(self, resume, request):
         if not resume and self.count() == 0:
@@ -47,21 +46,18 @@ class Crawl:
         self.url_queue.put(request.__dict__)
 
 
-class Crawler:
+class Crawler():
 
     @classmethod
-    def load_spider(Crawler, module, resume, settings):
-        Crawler.crawl = Crawl(module, settings)
+    def load_spider(Crawler, module, resume):
+        Crawler.crawl = Crawl(module)
         Crawler.crawl.start(resume, module._start)
 
     def process_url(self):
-        retry = 0
         crawl = Crawler.crawl
         logger = logging.getLogger("dragline")
-        settings = crawl.settings
         while True:
-            if not retry:
-                request = crawl.url_queue.get(timeout=2)
+            request = crawl.url_queue.get(timeout=2)
             if request:
                 request = Request(**request)
                 logger.info("Processing %s", request)
@@ -82,7 +78,7 @@ class Crawler:
                             crawl.insert(i)
                 except RequestError as e:
                     request.retry = request.retry + 1
-                    if retry == settings.MAX_RETRY:
+                    if request.retry == crawl.MAX_RETRY:
                         logger.warning("Rejecting %s", request.url)
                     else:
                         crawl.insert(request, False)
