@@ -3,6 +3,8 @@ from urllib import urlencode
 import socket
 from hashlib import sha1
 from defaultsettings import RequestSettings
+import time
+
 
 
 class RequestError(Exception):
@@ -38,10 +40,15 @@ class Request(RequestSettings):
     def send(self):
         form_data = urlencode(self.form_data) if self.form_data else None
         try:
+            print "sleepint "+str(self.delay)
+            time.sleep(self.delay)
+            start = time.time()
             http = httplib2.Http()
             response, content = http.request(
                 self.url, self.method, form_data, self.headers)
             response['url'] = self.url
+            end = time.time()
+            self.updatedelay(end,start)
         except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
             self.retry += 1
             raise RequestError(e.message)
@@ -62,3 +69,4 @@ class Request(RequestSettings):
     def updatedelay(cls, end, start):
         delay = end - start
         cls.delay = min(max(cls.min_delay, delay, (cls.delay + delay) / 2.0), cls.max_delay)
+
