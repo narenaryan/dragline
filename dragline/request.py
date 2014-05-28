@@ -40,7 +40,7 @@ class Request(RequestSettings):
     def send(self):
         form_data = urlencode(self.form_data) if self.form_data else None
         try:
-            print "sleepint "+str(self.delay)
+
             time.sleep(self.delay)
             start = time.time()
             http = httplib2.Http()
