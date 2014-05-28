@@ -63,7 +63,11 @@ class Crawler():
                 logger.info("Processing %s", request)
                 crawl.inc_count()
                 try:
+
+
                     response, content = request.send()
+
+
                     try:
                         callback = getattr(crawl.spider, request.callback)
                         if request.meta:
