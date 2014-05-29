@@ -1,0 +1,4 @@
+#!/usr/bin/env python
+
+from dragline.generate import execute
+execute()

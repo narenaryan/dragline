@@ -1,6 +1,6 @@
 import unittest
 from httplib2 import Http
-from dragline.request import  Request
+from dragline.http import  Request
 class RequestTest(unittest.TestCase):
 
     def test_request(self):
