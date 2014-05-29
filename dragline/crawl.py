@@ -68,13 +68,13 @@ class Crawler():
                 logger.info("Processing %s", request)
                 crawl.inc_count()
                 try:
-                    response, content = request.send()
+                    response = request.send()
                     try:
                         callback = getattr(crawl.spider, request.callback)
                         if request.meta:
-                            requests = callback(response, content, request.meta)
+                            requests = callback(response, request.meta)
                         else:
-                            requests = callback(response, content)
+                            requests = callback(response)
                     except:
                         logging.exception("Failed to execute callback")
                         requests = None
