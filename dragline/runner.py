@@ -27,11 +27,13 @@ def load_module(path, filename):
 
 
 def main(directory, resume):
+
     settings_module = load_module(directory,"settings")
+    conf = settings_module.conf
     spider_module = load_module(directory,"main")
-    spider = getattr(spider_module, "Spider")
+    spider = getattr(spider_module, "Spider")(conf)
     spider.logger = logging.getLogger(spider._name)
-    Crawler.load_spider(spider(), resume)
+    Crawler.load_spider(spider, resume)
     crawlers = [Crawler() for i in xrange(5)]
     try:
         joinall([spawn(crawler.process_url) for crawler in crawlers])
@@ -45,11 +47,12 @@ def main(directory, resume):
 
 def run():
     parser = argparse.ArgumentParser()
-    parser.add_argument('spider', help='spider file name')
+    parser.add_argument('spider', help='spider directory name')
     parser.add_argument('--resume', action='store_true')
     args = parser.parse_args()
-    path, filename = os.path.split(os.path.abspath(args.spider))
-    main(filename, path, args.resume)
+    path = os.path.abspath(args.spider)
+
+    main(path, args.resume)
 
 if __name__ == "__main__":
     run()
