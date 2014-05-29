@@ -26,11 +26,12 @@ def load_module(path, filename):
         raise ImportError
 
 
-def main(filename, directory, resume, conf=SpiderSettings()):
-    module = load_module(directory, filename.strip('.py'))
-    spider = getattr(module, "Spider")(conf)
+def main(directory, resume):
+    settings_module = load_module(directory,"settings")
+    spider_module = load_module(directory,"main")
+    spider = getattr(spider_module, "Spider")
     spider.logger = logging.getLogger(spider._name)
-    Crawler.load_spider(spider, resume)
+    Crawler.load_spider(spider(), resume)
     crawlers = [Crawler() for i in xrange(5)]
     try:
         joinall([spawn(crawler.process_url) for crawler in crawlers])
