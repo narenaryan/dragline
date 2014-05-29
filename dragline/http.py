@@ -1,13 +1,14 @@
-import httplib2
 from urllib import urlencode
 import socket
 from hashlib import sha1
-from defaultsettings import RequestSettings
 import time
+
+import httplib2
+
+from defaultsettings import RequestSettings
 
 
 class RequestError(Exception):
-
     def __init__(self, value):
         self.value = value
 
@@ -16,7 +17,6 @@ class RequestError(Exception):
 
 
 class Request(RequestSettings):
-
     def __init__(self, url, method="GET", callback=None, meta=None, form_data=None, headers=None):
         self.method = method
         self.url = url
@@ -42,14 +42,14 @@ class Request(RequestSettings):
             time.sleep(self.DELAY)
             start = time.time()
             http = httplib2.Http()
-            response, content = http.request(
+            headers, content = http.request(
                 self.url, self.method, form_data, self.HEADERS)
-            response['url'] = self.url
+            res = Response(self.url, content, headers)
             end = time.time()
             self.updatedelay(end, start)
         except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
             raise RequestError(e.message)
-        return response, content
+        return res
 
     def get_unique_id(self, hashing=True):
         request = self.method + ":" + self.url
@@ -66,4 +66,18 @@ class Request(RequestSettings):
     def updatedelay(cls, end, start):
         delay = end - start
         cls.DELAY = min(max(cls.MIN_DELAY, delay, (cls.DELAY + delay) / 2.0), cls.MAX_DELAY)
+
+
+class Response:
+    def __init__(self, url=None, body=None, header=None):
+        if url:
+            self.url = url
+        if body:
+            self.body = body
+        if header:
+            self.header = header
+
+
+
+
 

@@ -3,7 +3,7 @@ import re
 import logging
 from defaultsettings import CrawlSettings
 import redisds
-from request import Request, RequestError
+from http import Request, RequestError
 
 
 class Crawl(CrawlSettings):
