@@ -1,4 +1,7 @@
 class Settings:
+    def _set_state(self, state):
+        self.__dict__ = state
+
     LOGCONFIG = {
         'version': 1,
         'disable_existing_loggers': False,
@@ -44,6 +47,10 @@ class RequestSettings(Settings):
     DELAY = 0.5
     MIN_DELAY = 0.5
     MAX_DELAY = 60
+    method = "GET"
+    callback = None
+    meta = None
+    form_data = None
 
 
 class CrawlSettings(Settings):

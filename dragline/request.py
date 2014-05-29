@@ -6,7 +6,6 @@ from defaultsettings import RequestSettings
 import time
 
 
-
 class RequestError(Exception):
 
     def __init__(self, value):
@@ -40,7 +39,6 @@ class Request(RequestSettings):
     def send(self):
         form_data = urlencode(self.form_data) if self.form_data else None
         try:
-
             time.sleep(self.DELAY)
             start = time.time()
             http = httplib2.Http()
@@ -48,9 +46,8 @@ class Request(RequestSettings):
                 self.url, self.method, form_data, self.HEADERS)
             response['url'] = self.url
             end = time.time()
-            self.updatedelay(end,start)
+            self.updatedelay(end, start)
         except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
-            self.RETRY += 1
             raise RequestError(e.message)
         return response, content
 
