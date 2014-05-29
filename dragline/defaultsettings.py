@@ -27,12 +27,7 @@ class Settings:
                 'handlers': ['default'],
                 'level': 'INFO',
                 'propagate': False
-            },
-            'dragd': {
-                'handlers': ['default'],
-                'level': 'INFO',
-                'propagate': False
-            },
+            }
         }
     }
 
@@ -54,6 +49,7 @@ class RequestSettings(Settings):
 
 
 class CrawlSettings(Settings):
+    MODE = "RESUME"
     MAX_RETRY = 3
 
 

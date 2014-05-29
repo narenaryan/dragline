@@ -26,14 +26,14 @@ def load_module(path, filename):
         raise ImportError
 
 
-def main(directory, resume):
-
-    settings_module = load_module(directory,"settings")
-    conf = settings_module.conf
-    spider_module = load_module(directory,"main")
+def main(directory):
+    settings_module = load_module(directory, "settings")
+    conf = settings_module.CONF
+    spider_module = load_module(directory, "main")
+    spider_module.__dict__.update(settings_module.SPIDER)
     spider = getattr(spider_module, "Spider")(conf)
     spider.logger = logging.getLogger(spider._name)
-    Crawler.load_spider(spider, resume)
+    Crawler.load_spider(spider, settings_module)
     crawlers = [Crawler() for i in xrange(5)]
     try:
         joinall([spawn(crawler.process_url) for crawler in crawlers])
@@ -48,11 +48,9 @@ def main(directory, resume):
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('spider', help='spider directory name')
-    parser.add_argument('--resume', action='store_true')
     args = parser.parse_args()
     path = os.path.abspath(args.spider)
-
-    main(path, args.resume)
+    main(path)
 
 if __name__ == "__main__":
     run()

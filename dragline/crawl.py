@@ -1,4 +1,3 @@
-import time
 import json
 import re
 import logging
@@ -15,11 +14,15 @@ class Crawl(CrawlSettings):
         self.running_count = redisds.Counter("count", namespace=spider._name)
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
         self.spider = spider
+        self.start()
 
-    def start(self, resume, request):
-        if not resume and self.count() == 0:
-            self.url_queue.clear()
-            self.url_set.clear()
+    def start(self):
+        request = self.spider._start
+        if self.MODE in ["NORM", "RESUME"]:
+            if self.MODE == "NORM":
+                self.url_queue.clear()
+                self.url_set.clear()
+            self.running_count.set(0)
         if request.callback is None:
             request.callback = "parse"
         self.insert(request)
@@ -44,14 +47,15 @@ class Crawl(CrawlSettings):
                 return
         self.url_set.add(reqhash)
         self.url_queue.put(request.__dict__)
+        del request
 
 
 class Crawler():
 
     @classmethod
-    def load_spider(Crawler, module, resume):
-        Crawler.crawl = Crawl(module)
-        Crawler.crawl.start(resume, module._start)
+    def load_spider(Crawler, spider, settings):
+        Crawl.__dict__.update(settings.CRAWL)
+        Crawler.crawl = Crawl(spider)
 
     def process_url(self):
         crawl = Crawler.crawl
