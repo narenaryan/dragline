@@ -10,7 +10,7 @@ setup(name='Dragline',
       author_email='ashwin@quadloops.com, shimil@inzyte.com',
       url='http://www.quadloops.com',
       packages=['dragline'],
-      scripts=['scripts/dragline','scripts/dragline-init'],
+      scripts=['scripts/dragline','scripts/dragline-init','scripts/dragline-deploy'],
       install_requires=['gevent', 'httplib2'],
       test_suite='tests'
       )
