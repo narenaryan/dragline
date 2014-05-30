@@ -1,8 +1,8 @@
 .. _intro-tutorial:
 
-===============
+=================
 Dragline Tutorial
-===============
+=================
 
 In this tutorial, we'll assume that Dragline is already installed on your system.
 If that's not the case, see :ref:`intro-install`.

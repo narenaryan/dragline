@@ -5,7 +5,7 @@ Installation guide
 ==================
 
 Pre-requisites
-==============
+===============
 
 The installation steps assume that you have the following things installed:
 
@@ -14,7 +14,7 @@ The installation steps assume that you have the following things installed:
 
 
 Installing Dragline
-=================
+===================
 
 To install using pip::
 
