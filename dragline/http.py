@@ -40,9 +40,9 @@ class Request(RequestSettings):
         """
         This function send HTTP requests.
 
-        Returns: :class:`Response`
-
-        Raises: :class:`RequestError`
+        :returns: response
+        :rtype: :class:`Response`
+        :raises: :exc:`RequestError`: when failed to fetch contents
 
         >>> req = Request("http://www.example.org",method="GET", callback="parse", meta=dict(a=1,b=2))
         >>> response = req.send()
