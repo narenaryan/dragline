@@ -64,7 +64,7 @@ define the three main, mandatory, attributes:
 * :attr:`~Spider._name`: identifies the Spider. It must be
   unique, that is, you can't set the same name for different Spiders.
 
-* :attr:`Spider._start_url`: is a list of URLs where the
+* :attr:`~Spider._start_url`: is a list of URLs where the
   Spider will begin to crawl from.  So, the first pages downloaded will be those
   listed here. The subsequent URLs will be generated successively from data
   contained in the start URLs.
