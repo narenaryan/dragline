@@ -63,8 +63,7 @@ def deploy(url, username, password, foldername, spider_website=None):
     # read zip file
     return content
 
-
-if __name__ == "__main__":
+def deploy_spider():
     parser = argparse.ArgumentParser()
     parser.add_argument('url')
     parser.add_argument('username')
@@ -74,3 +73,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     result = deploy(args.url, args.username, args.password, args.spider_dir)
     print result
+
+
+
+if __name__ == "__main__":
+    deploy_spider()
+
