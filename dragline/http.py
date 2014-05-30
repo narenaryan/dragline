@@ -1,16 +1,13 @@
-
-
 from urllib import urlencode
 import socket
 from hashlib import sha1
 import time
-
 import httplib2
-
 from defaultsettings import RequestSettings
 
 
 class RequestError(Exception):
+
     def __init__(self, value):
         self.value = value
 
@@ -40,28 +37,19 @@ class Request(RequestSettings):
             return sha1(x).hexdigest()
 
     def send(self):
-        """This function send HTTP requests.
+        """
+        This function send HTTP requests.
 
+        Returns: :class:`Response`
 
+        Raises: :class:`RequestError`
 
-    Returns:
-       :class:Response.
+        >>> req = Request("http://www.example.org",method="GET", callback="parse", meta=dict(a=1,b=2))
+        >>> response = req.send()
+        >>> print response.headers['status']
+        200
 
-
-    Raises:
-       :class:RequestError
-
-    >>> req = Request("http://www.example.org",method="GET", callback="parse", meta=dict(a=1,b=2))
-    >>> response = req.send()
-    >>> print response.headers['status']
-    200
-
-
-
-
-
-
-    """
+        """
         form_data = urlencode(self.form_data) if self.form_data else None
         try:
             time.sleep(self.DELAY)
@@ -90,19 +78,16 @@ class Request(RequestSettings):
     @classmethod
     def updatedelay(cls, end, start):
         delay = end - start
-        cls.DELAY = min(max(cls.MIN_DELAY, delay, (cls.DELAY + delay) / 2.0), cls.MAX_DELAY)
+        cls.DELAY = min(
+            max(cls.MIN_DELAY, delay, (cls.DELAY + delay) / 2.0), cls.MAX_DELAY)
 
 
 class Response:
-    def __init__(self, url=None, body=None, header=None):
+
+    def __init__(self, url=None, body=None, headers=None):
         if url:
             self.url = url
         if body:
             self.body = body
-        if header:
-            self.headers = header
-
-
-
-
-
+        if headers:
+            self.headers = headers

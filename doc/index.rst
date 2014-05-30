@@ -10,9 +10,7 @@ Contents:
 
 .. toctree::
    http
-   
-:doc:`http`:
-    Understand what Scrapy is and how it can help you.
+   parser
 
 
 
