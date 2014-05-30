@@ -5,6 +5,10 @@ from urlparse import urldefrag, urljoin
 class HtmlParser:
 
     def __init__(self, response):
+        """
+        :param response:
+        :type response: :class:`Response`
+        """
         self.url = response.url
         self.data = etree.HTML(response.body)
 
@@ -12,11 +16,9 @@ class HtmlParser:
         """
         This function extracts urls from a given xpath
 
-        Args:
-            xpath (str): xpath from which the urls are to be fetched
-
-        Returns:
-            :list of urls.
+        :param xpath: xpath from which the urls are to be fetched
+        :type xpath: str
+        :return: list of urls.
 
         >>> html = HtmlParser(response)
         >>> urls = html.extract_urls("EXAMPLE_XPATH")
@@ -29,6 +31,9 @@ class HtmlParser:
     def xpath(self, xpath):
         """
         This function extracts contents of an xpath
+
+        :param xpath: xpath of the content
+        :type xpath: str
         """
         return self.data.xpath(xpath)
 
