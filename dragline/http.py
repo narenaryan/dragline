@@ -38,7 +38,7 @@ class Request(RequestSettings):
 
     def send(self):
         """
-        This function send HTTP requests.
+        This function sends HTTP requests.
 
         :returns: response
         :rtype: :class:`Response`
