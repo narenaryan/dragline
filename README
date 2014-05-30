@@ -1,2 +1,2 @@
-sudo pip install --upgrade git+http://code.quadloops.com/inzyte/redisdatastructure.git
-sudo pip install --upgrade git+http://code.quadloops.com/inzyte/crawler.git
+
+ sudo pip install Dragline
