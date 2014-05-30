@@ -6,12 +6,36 @@
 Welcome to Dragline's documentation!
 ====================================
 
-Contents:
+First steps
+===========
+.. toctree::
+   :hidden:
+
+   install
+   tutorial
+   examples
+   
+:doc:`install`
+    Get Dragline installed on your computer.
+
+:doc:`tutorial`
+    Write your first Dragline project.
+
+:doc:`examples`
+    Learn more by playing with a pre-made Dragline project.
+
+Contents
+===========
 
 .. toctree::
-   http
-   parser
+    :hidden:
 
+    http
+    parser
+
+:doc:`http`
+
+:doc:`parser`
 
 
 Indices and tables
