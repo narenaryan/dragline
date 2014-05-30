@@ -53,8 +53,12 @@ class Crawl(CrawlSettings):
 class Crawler():
 
     @classmethod
-    def load_spider(Crawler, spider, settings):
+    def load_spider(Crawler, spider_class, settings):
         Crawl.__dict__.update(settings.CRAWL)
+        Request.__dict__.update(settings.REQUEST)
+        spider_class.__dict__.update(settings.SPIDER)
+        spider = spider_class(settings.CONF)
+        spider.logger = logging.getLogger(spider._name)
         Crawler.crawl = Crawl(spider)
 
     def process_url(self):

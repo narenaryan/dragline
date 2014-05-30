@@ -87,25 +87,28 @@ This is the code for our first Spider; save it in a file named
     from dragline.http import Request
 
 
-
     class Spider:
 
         def __init__(self, conf):
-            self._name = "BoxOffice"
-            self._start = Request("http://www.boxofficeindia.co.in/weekly-collections-%E2%80%93-box-office/")
-            self._allowed_urls_regex = "http://www.boxofficeindia.co.in/weekly-collections-%E2%80%93-box-office/"
+            self._name = "FilmFare"
+            self._start = Request("http://www.filmfare.com/reviews/")
+            self._allowed_urls_regex = "http://www.filmfare.com/reviews/"
+            self.conf = conf
 
         def parse(self, response):
             data = HtmlParser(response)
-            date_xpath = '//div[@id="collections-form"]/form/select/option/text()'
-            for i in data.xpath(date_xpath):
-                yield Request(response.url, "POST", "parse_page", form_data={'date_of_display': i})
+            url_xp = "//figure[@class='featured']"
+            for url in data.extract_urls(url_xp):
+                yield Request(url=url, callback="parse_review")
 
-        def parse_page(self, response):
+            for url in data.extract_urls('//div[@class="pageNav"]'):
+                yield Request(url=url, callback="parse")
+
+        def parse_review(self, response):
             data = HtmlParser(response)
-            title = data.xpath('//*[@id="week-date-compare"]/text()')
+            title = data.xpath("//div[@class='TopPart']/h1/text()")
             if title:
-                print '-' * 100, '\n', title[0]
+                print title
 
 Crawling
 --------
