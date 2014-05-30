@@ -1,3 +1,5 @@
+
+
 from urllib import urlencode
 import socket
 from hashlib import sha1
@@ -17,6 +19,7 @@ class RequestError(Exception):
 
 
 class Request(RequestSettings):
+
     def __init__(self, url, method="GET", callback=None, meta=None, form_data=None, headers=None):
         self.method = method
         self.url = url
@@ -37,6 +40,28 @@ class Request(RequestSettings):
             return sha1(x).hexdigest()
 
     def send(self):
+        """This function send HTTP requests.
+
+
+
+    Returns:
+       :class:Response.
+
+
+    Raises:
+       :class:RequestError
+
+    >>> req = Request("http://www.example.org",method="GET", callback="parse", meta=dict(a=1,b=2))
+    >>> response = req.send()
+    >>> print response.headers['status']
+    200
+
+
+
+
+
+
+    """
         form_data = urlencode(self.form_data) if self.form_data else None
         try:
             time.sleep(self.DELAY)
@@ -75,7 +100,7 @@ class Response:
         if body:
             self.body = body
         if header:
-            self.header = header
+            self.headers = header
 
 
 
