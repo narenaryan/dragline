@@ -12,7 +12,7 @@ class HtmlParser:
         """
         This function extracts urls from a given xpath
 
-        Kwargs:
+        Args:
             xpath (str): xpath from which the urls are to be fetched
 
         Returns:
