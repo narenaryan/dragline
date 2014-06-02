@@ -18,7 +18,7 @@ Installing Dragline
 
 To install using pip::
 
-    sudo pip install --upgrade git+http://code.quadloops.com/inzyte/crawler.git
+    sudo pip install dragline
 
 
 .. _Python: http://www.python.org

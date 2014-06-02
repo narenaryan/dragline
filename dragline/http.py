@@ -17,14 +17,25 @@ class RequestError(Exception):
 
 class Request(RequestSettings):
 
-    def __init__(self, url, method="GET", callback=None, meta=None, form_data=None, headers=None):
+    def __init__(self, url, method="GET", form_data=None, headers={}, callback=None, meta=None,):
+        """
+            :param url: the URL of this request
+            :type url: string
+            :param method: the HTTP method of this request. Defaults to ``'GET'``.
+            :type method: string
+            :param headers: the headers of this request.
+            :type headers: dict
+            :param callback: name of the function to call after url is downloaded.
+            :type callback: string
+            :param meta:  A dict that contains arbitrary metadata for this request.
+            :type meta: dict
+        """
         self.method = method
         self.url = url
         self.callback = callback
         self.meta = meta
         self.form_data = form_data
-        if headers is not None:
-            self.HEADERS = headers
+        self.HEADERS.update(headers)
 
     def __str__(self):
         return self.get_unique_id(False)
@@ -44,7 +55,7 @@ class Request(RequestSettings):
         :rtype: :class:`Response`
         :raises: :exc:`RequestError`: when failed to fetch contents
 
-        >>> req = Request("http://www.example.org",method="GET", callback="parse", meta=dict(a=1,b=2))
+        >>> req = Request("http://www.example.org")
         >>> response = req.send()
         >>> print response.headers['status']
         200
@@ -57,7 +68,7 @@ class Request(RequestSettings):
             http = httplib2.Http()
             headers, content = http.request(
                 self.url, self.method, form_data, self.HEADERS)
-            res = Response(self.url, content, headers)
+            res = Response(self.url, content, headers, self.meta)
             end = time.time()
             self.updatedelay(end, start)
         except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
@@ -84,10 +95,12 @@ class Request(RequestSettings):
 
 class Response:
 
-    def __init__(self, url=None, body=None, headers=None):
+    def __init__(self, url=None, body=None, headers=None, meta=None):
         if url:
             self.url = url
         if body:
             self.body = body
         if headers:
             self.headers = headers
+        if meta:
+            self.meta = meta

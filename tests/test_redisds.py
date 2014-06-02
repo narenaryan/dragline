@@ -1,4 +1,4 @@
-import redisds
+from dragline import redisds
 import unittest
 import pickle
 

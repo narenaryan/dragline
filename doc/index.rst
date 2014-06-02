@@ -13,7 +13,6 @@ First steps
 
    install
    tutorial
-   examples
    
 :doc:`install`
     Get Dragline installed on your computer.
@@ -21,21 +20,14 @@ First steps
 :doc:`tutorial`
     Write your first Dragline project.
 
-:doc:`examples`
-    Learn more by playing with a pre-made Dragline project.
 
 Contents
 ===========
 
 .. toctree::
-    :hidden:
-
     http
     parser
 
-:doc:`http`
-
-:doc:`parser`
 
 
 Indices and tables
