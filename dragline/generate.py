@@ -1,19 +1,24 @@
 from string import Template
 import os
 import argparse
+import dragline
+
+
 def generate(spider_name):
-    main = open(os.path.dirname(os.path.abspath(__file__))+"/templates/main.py","r").read()
+    template_dir = os.path.join(os.path.dirname(dragline.__path__[0]), "templates")
+    main = open(os.path.join(template_dir, "main.tem"), "r").read()
     s = Template(main)
     main = s.substitute(spider_name=spider_name)
-    settings = open(os.path.dirname(os.path.abspath(__file__))+"/templates/settings.py","r").read()
+    settings = open(os.path.join(template_dir, "settings.tem"), "r").read()
 
     os.makedirs(spider_name)
-    mainfile = open(spider_name+"/main.py","w")
+    mainfile = open(spider_name + "/main.py", "w")
     mainfile.write(main)
     mainfile.close()
-    settfile = open(spider_name+"/settings.py","w")
+    settfile = open(spider_name + "/settings.py", "w")
     settfile.write(settings)
     settfile.close()
+
 
 def execute():
     parser = argparse.ArgumentParser()
@@ -24,7 +29,3 @@ def execute():
 
 if __name__ == "__main__":
     execute()
-
-
-
-

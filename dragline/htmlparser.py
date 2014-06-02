@@ -7,7 +7,7 @@ class HtmlParser:
     def __init__(self, response):
         """
         :param response:
-        :type response: :class:`Response`
+        :type response: :class:`dragline.http.Response`
         """
         self.url = response.url
         self.data = etree.HTML(response.body)

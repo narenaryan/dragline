@@ -2,7 +2,6 @@ from dragline.htmlparser import HtmlParser
 from dragline.http import Request
 
 
-
 class Spider:
 
     def __init__(self, conf):
@@ -13,4 +12,3 @@ class Spider:
 
     def parse(self,response):
         html = HtmlParser(response)
-

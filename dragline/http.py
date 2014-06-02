@@ -17,19 +17,20 @@ class RequestError(Exception):
 
 class Request(RequestSettings):
 
+    """
+    :param url: the URL of this request
+    :type url: string
+    :param method: the HTTP method of this request. Defaults to ``'GET'``.
+    :type method: string
+    :param headers: the headers of this request.
+    :type headers: dict
+    :param callback: name of the function to call after url is downloaded.
+    :type callback: string
+    :param meta:  A dict that contains arbitrary metadata for this request.
+    :type meta: dict
+    """
+
     def __init__(self, url, method="GET", form_data=None, headers={}, callback=None, meta=None,):
-        """
-            :param url: the URL of this request
-            :type url: string
-            :param method: the HTTP method of this request. Defaults to ``'GET'``.
-            :type method: string
-            :param headers: the headers of this request.
-            :type headers: dict
-            :param callback: name of the function to call after url is downloaded.
-            :type callback: string
-            :param meta:  A dict that contains arbitrary metadata for this request.
-            :type meta: dict
-        """
         self.method = method
         self.url = url
         self.callback = callback
@@ -52,8 +53,8 @@ class Request(RequestSettings):
         This function sends HTTP requests.
 
         :returns: response
-        :rtype: :class:`Response`
-        :raises: :exc:`RequestError`: when failed to fetch contents
+        :rtype: :class:`dragline.http.Response`
+        :raises: :exc:`dragline.http.RequestError`: when failed to fetch contents
 
         >>> req = Request("http://www.example.org")
         >>> response = req.send()
@@ -94,6 +95,20 @@ class Request(RequestSettings):
 
 
 class Response:
+    """
+    :param url: the URL of this response
+    :type url: string
+
+    :param headers: the headers of this response.
+    :type headers: dict
+
+    :param body: the response body.
+    :type body: str
+
+    :param meta: meta copied from request
+    :type meta: dict
+
+    """
 
     def __init__(self, url=None, body=None, headers=None, meta=None):
         if url:
