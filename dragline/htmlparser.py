@@ -1,4 +1,4 @@
-from lxml import etree
+from lxml import html
 from urlparse import urldefrag, urljoin
 
 
@@ -9,8 +9,8 @@ class HtmlParser:
         :param response:
         :type response: :class:`dragline.http.Response`
         """
-        self.url = response.url
-        self.data = etree.HTML(response.body)
+        self.data = html.fromstring(response.body, response.url)
+        self.data.make_links_absolute()
 
     def extract_urls(self, xpath=""):
         """
@@ -25,17 +25,11 @@ class HtmlParser:
         ['url1', 'url2', 'url3']
 
         """
-        return [self.abs_url(self.url, url)
-                for url in self.data.xpath(xpath + '//a/@href')]
+        if xpath == "":
+            return [url[2].split('#')[0] for url in self.data.iterlinks()]
+        else:
+            return [url.split('#')[0]
+                    for url in self.data.xpath(xpath + '//a/@href')]
 
-    def xpath(self, xpath):
-        """
-        This function extracts contents of an xpath
-
-        :param xpath: xpath of the content
-        :type xpath: str
-        """
-        return self.data.xpath(xpath)
-
-    def abs_url(self, baseurl, relativeurl):
-        return urldefrag(urljoin(baseurl, relativeurl.strip()))[0]
+    def __getattr__(self, attr):
+        return getattr(self.data, attr)
