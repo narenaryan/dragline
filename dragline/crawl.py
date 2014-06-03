@@ -91,6 +91,8 @@ class Crawler():
                         logger.warning("Rejecting %s", request)
                     else:
                         crawl.insert(request, False)
+                except KeyboardInterrupt:
+                    pass
                 except Exception as e:
                     logger.exception('Failed to open the url %s', request)
                 else:
