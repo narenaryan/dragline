@@ -5,7 +5,7 @@ import dragline
 
 
 def generate(spider_name):
-    template_dir = os.path.join(os.path.dirname(dragline.__path__[0]), "templates")
+    template_dir = os.path.join(dragline.__path__[0], "templates")
     main = open(os.path.join(template_dir, "main.tem"), "r").read()
     s = Template(main)
     main = s.substitute(spider_name=spider_name)

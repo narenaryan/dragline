@@ -12,9 +12,10 @@ setup(name='Dragline',
       url='http://www.inzyte.com',
       packages=['dragline'],
       scripts=glob("scripts/*"),
-      data_files=[('templates', glob("templates/*"))],
+      data_files=[('dragline/templates', glob("dragline/templates/*"))],
       include_package_data=True,
-      install_requires=['gevent>=1.0.0', 'httplib2>=0.9', 'redis>=2.9.0'],
+      install_requires=[i.strip() for i in
+                        open('requirements.txt').xreadlines()],
       test_suite='tests',
       classifiers=[
           'Programming Language :: Python',
