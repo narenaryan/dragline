@@ -3,6 +3,7 @@ import socket
 from hashlib import sha1
 import time
 import httplib2
+from defaultsettings import RequestSettings
 
 
 class RequestError(Exception):
@@ -15,7 +16,7 @@ class RequestError(Exception):
 
 
 class Request:
-
+    settings = RequestSettings({})
     """
     :param url: the URL of this request
     :type url: string
