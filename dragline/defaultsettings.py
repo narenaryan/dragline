@@ -1,6 +1,6 @@
 class Settings:
-    def _set_state(self, state):
-        self.__dict__ = state
+    def __init__(self, data):
+        self.__dict__.update(data)
 
     LOGCONFIG = {
         'version': 1,
@@ -38,7 +38,6 @@ class RequestSettings(Settings):
         "accept": "text/html",
         'content-type': "application/x-www-form-urlencoded"
     }
-    RETRY = 0
     DELAY = 0.5
     MIN_DELAY = 0.5
     MAX_DELAY = 60

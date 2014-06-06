@@ -1,12 +1,12 @@
 import json
 import re
 import logging
-from defaultsettings import CrawlSettings
+from defaultsettings import CrawlSettings, RequestSettings, SpiderSettings
 import redisds
 from http import Request, RequestError
 
 
-class Crawl(CrawlSettings):
+class Crawl:
 
     def __init__(self, spider):
         self.url_set = redisds.Set('urlset', spider._name,)
@@ -18,8 +18,8 @@ class Crawl(CrawlSettings):
 
     def start(self):
         request = self.spider._start
-        if self.MODE in ["NORM", "RESUME"]:
-            if self.MODE == "NORM":
+        if self.settings.MODE in ["NORM", "RESUME"]:
+            if self.settings.MODE == "NORM":
                 self.url_queue.clear()
                 self.url_set.clear()
             self.running_count.set(0)
@@ -54,10 +54,10 @@ class Crawler():
 
     @classmethod
     def load_spider(Crawler, spider_class, settings):
-        Crawl.__dict__.update(settings.CRAWL)
-        Request.__dict__.update(settings.REQUEST)
-        spider_class.__dict__.update(settings.SPIDER)
-        spider = spider_class(settings.CONF)
+        Crawl.settings = CrawlSettings(settings.CRAWL)
+        Request.settings = RequestSettings(settings.REQUEST)
+        settings = SpiderSettings(settings.SPIDER)
+        spider = spider_class(settings)
         spider.logger = logging.getLogger(spider._name)
         Crawler.crawl = Crawl(spider)
 
@@ -87,7 +87,7 @@ class Crawler():
                             crawl.insert(i)
                 except RequestError as e:
                     request.RETRY += 1
-                    if request.RETRY >= crawl.MAX_RETRY:
+                    if request.RETRY >= crawl.settings.MAX_RETRY:
                         logger.warning("Rejecting %s", request)
                     else:
                         crawl.insert(request, False)

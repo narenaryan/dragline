@@ -3,7 +3,6 @@ import socket
 from hashlib import sha1
 import time
 import httplib2
-from defaultsettings import RequestSettings
 
 
 class RequestError(Exception):
@@ -15,7 +14,7 @@ class RequestError(Exception):
         return repr(self.value)
 
 
-class Request(RequestSettings):
+class Request:
 
     """
     :param url: the URL of this request
@@ -36,7 +35,10 @@ class Request(RequestSettings):
         self.callback = callback
         self.meta = meta
         self.form_data = form_data
-        self.HEADERS.update(headers)
+        self.headers = self.settings.HEADERS.update(headers)
+
+    def _set_state(self, state):
+        self.__dict__ = state
 
     def __str__(self):
         return self.get_unique_id(False)
@@ -64,11 +66,11 @@ class Request(RequestSettings):
         """
         form_data = urlencode(self.form_data) if self.form_data else None
         try:
-            time.sleep(self.DELAY)
+            time.sleep(Request.settings.DELAY)
             start = time.time()
             http = httplib2.Http()
             headers, content = http.request(
-                self.url, self.method, form_data, self.HEADERS)
+                self.url, self.method, form_data, self.headers)
             res = Response(self.url, content, headers, self.meta)
             end = time.time()
             self.updatedelay(end, start)
@@ -90,8 +92,10 @@ class Request(RequestSettings):
     @classmethod
     def updatedelay(cls, end, start):
         delay = end - start
-        cls.DELAY = min(
-            max(cls.MIN_DELAY, delay, (cls.DELAY + delay) / 2.0), cls.MAX_DELAY)
+        cls.settings.DELAY = min(
+            max(cls.settings.MIN_DELAY, delay,
+                (cls.settings.DELAY + delay) / 2.0),
+            cls.settings.MAX_DELAY)
 
 
 class Response:
