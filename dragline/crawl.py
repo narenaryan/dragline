@@ -28,6 +28,13 @@ class Crawl:
             request.callback = "parse"
         self.insert(request)
 
+    def clear(self, finished):
+        if self.settings.MODE == "NORM" or finished:
+            self.url_queue.clear()
+            self.url_set.clear()
+        if self.settings.MODE != "DISTRIBUTE":
+            self.running_count.set(0)
+
     def count(self):
         return self.running_count.get()
 
@@ -66,9 +73,11 @@ class Crawler():
         crawl = Crawler.crawl
         logger = logging.getLogger("dragline")
         request = Request(None)
+        retry = 0
         while True:
             args = crawl.url_queue.get(timeout=2)
             if args:
+                retry = 0
                 request._set_state(args)
                 logger.info("Processing %s", request)
                 crawl.inc_count()
@@ -101,6 +110,8 @@ class Crawler():
                 finally:
                     crawl.decr_count()
             else:
-                if crawl.count() == 0:
+                if crawl.count() == 0 or retry >= 2:
                     break
+                else:
+                    retry += 1
                 logger.debug("Waiting for %s", crawl.count())

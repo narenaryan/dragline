@@ -35,10 +35,11 @@ def main(directory):
     try:
         joinall([spawn(crawler.process_url) for crawler in crawlers])
     except KeyboardInterrupt:
-        pass
+        Crawler.crawl.clear(False)
     except:
         logger.exception("Unable to complete")
     else:
+        Crawler.crawl.clear(True)
         logger.info("Crawling completed")
 
 
