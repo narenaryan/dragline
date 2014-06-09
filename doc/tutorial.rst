@@ -4,23 +4,30 @@
 Dragline Tutorial
 =================
 
-In this tutorial, we'll assume that Dragline is already installed on your system.
-If that's not the case, see :ref:`intro-install`.
+Become a Spider man 
+-------------------
+Yes,you heared it right.Dragline really creates spiders in a lightening speed for you.This tutorial
+illustrates how it is possible.
 
-We are going to use `Open directory project (FilmFare) <http://www.filmfare.com/>`_ as
-our example domain to scrape.
+Let us build a spider to crawl entire python docs section and collect URL.
+In this tutorial, we'll assume that Dragline is already installed on your system.
+If that's not the case, see :ref:`intro-install`.Also See the additonal reqiurements.
+
+In this tutorial we are going to build custom spider,ones spider will be different 
+from others but Dragline provides a common framework to build  different spiders.
+
+We are going to use `Open directory project (Python Docs) <https://docs.python.org/3/>`_ as
+our example domain to crawl.
 
 This tutorial will walk you through these tasks:
 
-1. Creating a new Dragline project
+1. Creating a new Dragline project.
 
-2. Writing a Spider to crawl a site and extract titles
+2. Writing a Spider to crawl a site and extract titles.
    
+3. A thorough understanding of Dragline API.
 
-
-Dragline is written in Python_. If you're new to the language you might want to
-start by getting an idea of what the language is like, to get the most out of
-Dragline.  If you're already familiar with other languages, and want to learn
+Dragline is toally designed in Python2.7 .You are here because you are a python developer. If not don't be panic.Heartly welcome to python,and want to learn
 Python quickly, we recommend `Learn Python The Hard Way`_.  If you're new to programming
 and want to start with Python, take a look at `this list of Python resources
 for non-programmers`_.
@@ -31,15 +38,18 @@ for non-programmers`_.
 
 Creating a project
 ==================
+Let us think our spider name is docspider.
 
-Before you start scraping, you will have set up a new Dragline project. Enter a
-directory where you'd like to store your code and then run::
+Before you start scraping, you will have to set up a new Dragline project. Traverse into a
+directory where you'd like to store your spider and its associated code and then run the following command::
 
-   dragline-init tutorial
+   dragline-init docspider
 
-This will create a ``tutorial`` directory with the following contents::
+If you are a django developer then you might be familiar with above type of command.
 
-   tutorial/
+This will create a ``docspider`` directory with the following two files::
+
+   docspider/
         main.py
         settings.py
 
@@ -47,7 +57,7 @@ This will create a ``tutorial`` directory with the following contents::
 These are basically:
 
 * ``settings.py``: the project's settings file.
-* ``main.py``: file where you write your spider
+* ``main.py``: file where we write our custom spider
 
 Our first Spider
 ================
@@ -81,7 +91,7 @@ define the three main, mandatory, attributes:
 
 
 This is the code for our first Spider; save it in a file named
-``main.py`` under the ``tutorial`` directory::
+``main.py`` under the ``docspider`` directory::
 
     from dragline.htmlparser import HtmlParser
     from dragline.http import Request

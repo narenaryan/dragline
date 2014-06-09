@@ -2,5 +2,5 @@ Request and Response
 =========================
 
 .. automodule:: dragline.http
-   :members:
+   :members: Request,Response
     
