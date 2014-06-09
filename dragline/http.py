@@ -16,7 +16,7 @@ class RequestError(Exception):
 
 
 class Request:
-    settings = RequestSettings({})
+
     """
     :param url: the URL of this request
     :type url: string
@@ -30,13 +30,25 @@ class Request:
     :type meta: dict
     """
 
+    settings = RequestSettings({})
+    method = "GET"
+    form_data = None
+    headers = {}
+    callback = None
+    meta = None
+
     def __init__(self, url, method="GET", form_data=None, headers={}, callback=None, meta=None,):
-        self.method = method
         self.url = url
-        self.callback = callback
-        self.meta = meta
-        self.form_data = form_data
-        self.headers = headers
+        if method:
+            self.method = method
+        if callback:
+            self.callback = callback
+        if meta:
+            self.meta = meta
+        if form_data:
+            self.form_data = form_data
+        if headers:
+            self.headers = headers
 
     def _set_state(self, state):
         self.__dict__ = state
@@ -102,6 +114,7 @@ class Request:
 
 
 class Response:
+
     """
     :param url: the URL of this response
     :type url: string
