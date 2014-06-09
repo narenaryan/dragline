@@ -30,7 +30,7 @@ class Request:
     :type meta: dict
     """
 
-    settings = RequestSettings({})
+    settings = RequestSettings()
     method = "GET"
     form_data = None
     headers = {}

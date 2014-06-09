@@ -1,5 +1,5 @@
 class Settings:
-    def __init__(self, data):
+    def __init__(self, data={}):
         self.__dict__.update(data)
 
     LOGCONFIG = {

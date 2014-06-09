@@ -7,7 +7,7 @@ from http import Request, RequestError
 
 
 class Crawl:
-    settings = CrawlSettings({})
+    settings = CrawlSettings()
 
     def __init__(self, spider):
         redis_args = dict(host=self.settings.REDIS_URL,
