@@ -46,6 +46,9 @@ class RequestSettings(Settings):
 class CrawlSettings(Settings):
     MODE = "NORM"
     MAX_RETRY = 3
+    REDIS_URL = 'localhost'
+    REDIS_PORT = 6379
+    REDIS_DB = 1
 
 
 class SpiderSettings(Settings):

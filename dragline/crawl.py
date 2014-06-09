@@ -10,9 +10,14 @@ class Crawl:
     settings = CrawlSettings({})
 
     def __init__(self, spider):
-        self.url_set = redisds.Set('urlset', spider._name,)
-        self.url_queue = redisds.Queue('urlqueue', spider._name, json)
-        self.running_count = redisds.Counter("count", namespace=spider._name)
+        redis_args = dict(host=self.settings.REDIS_URL,
+                          port=self.settings.REDIS_PORT,
+                          db=self.settings.REDIS_DB)
+        self.url_set = redisds.Set('urlset', spider._name, **redis_args)
+        self.url_queue = redisds.Queue('urlqueue', spider._name, json,
+                                       **redis_args)
+        self.running_count = redisds.Counter("count", namespace=spider._name,
+                                             **redis_args)
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
         self.spider = spider
         self.start()
