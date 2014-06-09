@@ -36,7 +36,7 @@ class Request:
         self.callback = callback
         self.meta = meta
         self.form_data = form_data
-        self.headers = self.settings.HEADERS.update(headers)
+        self.headers = headers
 
     def _set_state(self, state):
         self.__dict__ = state
@@ -70,8 +70,10 @@ class Request:
             time.sleep(Request.settings.DELAY)
             start = time.time()
             http = httplib2.Http()
+            req_headers = self.settings.HEADERS
+            req_headers.update(self.headers)
             headers, content = http.request(
-                self.url, self.method, form_data, self.headers)
+                self.url, self.method, form_data, req_headers)
             res = Response(self.url, content, headers, self.meta)
             end = time.time()
             self.updatedelay(end, start)
@@ -116,11 +118,7 @@ class Response:
     """
 
     def __init__(self, url=None, body=None, headers=None, meta=None):
-        if url:
-            self.url = url
-        if body:
-            self.body = body
-        if headers:
-            self.headers = headers
-        if meta:
-            self.meta = meta
+        self.url = url
+        self.body = body
+        self.headers = headers
+        self.meta = meta
