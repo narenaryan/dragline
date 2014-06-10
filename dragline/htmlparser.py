@@ -1,27 +1,37 @@
 from lxml import html
+from parslepy import Parselet
 from urlparse import urldefrag, urljoin
+from cssselect import HTMLTranslator
+import re
 
 
-def extract_urls(self, xpath=""):
-    """
-    This function extracts urls from a given xpath
+def links(self):
+    return set(url[2].split('#')[0] for url in self.iterlinks()
+               if re.match('^http://', url) and url[1] == 'href')
 
-    :param xpath: xpath from which the urls are to be fetched
-    :type xpath: str
-    :return: list of urls.
 
-    >>> html = HtmlParser(response)
-    >>> urls = html.extract_urls("EXAMPLE_XPATH")
-    ['url1', 'url2', 'url3']
+def gettext(self):
+    return "".join(i.strip for i in self.itertext())
 
-    """
-    if xpath == "":
-        return [url[2].split('#')[0] for url in self.iterlinks()]
-    else:
-        return [url.split('#')[0]
-                for url in self.xpath(xpath + '//a/@href')]
 
-html.HtmlElement.extract_urls = extract_urls
+def extract(self, rules):
+    parselet = Parselet(rules)
+    return parselet.extract(self, rules)
+
+
+def cssselect(self, expr):
+    return self._css_translator.css_to_xpath(expr)
+
+
+def css(self, expr):
+    return self.xpath(self.cssselect(expr))
+
+
+html.HtmlElement.links = links
+html.HtmlElement.gettext = gettext
+html.HtmlElement._css_translator = HTMLTranslator()
+html.HtmlElement.cssselect = cssselect
+html.HtmlElement.css = css
 
 
 def HtmlParser(response):
