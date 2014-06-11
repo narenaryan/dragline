@@ -8,15 +8,17 @@ Welcome to Dragline's documentation!
 
 What is Dragline?
 =================
-Dragline is not a pre-defined application to perform a single task.It is a crawler that crawls through 
-any no of pages and fetches the URL.The main theme of dragline is to create your own spiders on the web.
-The creative usage of the Dragline remains in the hands of the developer.This documentation leads you 
-to easily come up with all the tools available and how to use them to build a custom spider in few minutes.
+Dragline is a pure pythonic library that intended to create the crawling applications in python.Builtin  
+crawler is capable of scraping any no of pages and fetches the URL.The main target of dragline is to create 
+custom spiders on the web.
+The creative usage of the Dragline remains in the hands of the developer.This documentation leads a developer 
+to easily come up with all the tools available and how they can be used to build a custom spider in few minutes.
 
-Yet Another Spider?
+Features
 ===================
-There are some crawling packages available,why another one?.We strongly believe that the effieciency
-matters.Dragline is different from others in many aspects.The most significant feautures are:
+There are some crawling packages available in the community.Effieciency must be given the utmost
+priority since the emergence of large projects.Dragline is different from others in many aspects.The most 
+significant feautures of dragline those makes it powerful:
 
 	1. Built from scratch.
 	2. redis backend for persistant storage.

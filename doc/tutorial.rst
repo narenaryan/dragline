@@ -4,17 +4,20 @@
 Dragline Tutorial
 =================
 
-Become a Spider man 
+Beginning instructions
 -------------------
-Yes,you heared it right.Dragline really creates spiders in a lightening speed for you.This tutorial
-illustrates how it is possible.
+Dragline is entirely written in python.It facilitates to create the different spiders upon
+the stack of the performance,robustness and easieness.The most engaging issue with Dragline 
+is the creation of custom spiders using one central crawler that availale in the Dragline library.
 
-Let us build a spider to crawl entire python docs section and collect URL.
+Let us build a spider to crawl entire python docs section and collect URL followed by storing.
+The work of redis backend will be abstracted 
 In this tutorial, we'll assume that Dragline is already installed on your system.
 If that's not the case, see :ref:`intro-install`.Also See the additonal reqiurements.
 
-In this tutorial we are going to build custom spider,ones spider will be different 
-from others but Dragline provides a common framework to build  different spiders.
+In this tutorial we are going to build custom spider,this is a single illustration.But
+Dragline encapsulate much power in its functionality.First task of the Dragline is to provide
+a common framework to build  different spiders.
 
 We are going to use `Open directory project (Python Docs) <https://docs.python.org/3/>`_ as
 our example domain to crawl.
