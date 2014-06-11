@@ -1,8 +1,13 @@
-from lxml import html
+from lxml import html, etree
 from parslepy import Parselet
+from parslepy.funcs import xpathstrip
 from urlparse import urldefrag, urljoin
 from cssselect import HTMLTranslator
 import re
+
+
+ns = etree.FunctionNamespace(None)
+ns['strip'] = xpathstrip
 
 
 def links(self):
