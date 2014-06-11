@@ -16,6 +16,14 @@ def links(self):
     return set(url for url in urls if re.match('^http://', url))
 
 
+def extract_urls(self, xpath=''):
+    if xpath:
+        return set(url.split('#')[0] for url in self.xpath(xpath + "//a/@href")
+                   if re.match('^http://', url))
+    else:
+        return self.links()
+
+
 def gettext(self):
     return "".join(i.strip() for i in self.itertext())
 
@@ -39,6 +47,7 @@ html.HtmlElement._css_translator = HTMLTranslator()
 html.HtmlElement.cssselect = cssselect
 html.HtmlElement.css = css
 html.HtmlElement.extract = extract
+html.HtmlElement.extract_urls = extract_urls
 
 
 def HtmlParser(response):
