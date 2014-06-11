@@ -82,7 +82,7 @@ class Request:
         try:
             time.sleep(Request.settings.DELAY)
             start = time.time()
-            http = httplib2.Http()
+            http = httplib2.Http(cache=self.settings.CACHE)
             req_headers = self.settings.HEADERS
             req_headers.update(self.headers)
             headers, content = http.request(

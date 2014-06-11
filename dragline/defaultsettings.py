@@ -38,6 +38,7 @@ class RequestSettings(Settings):
         "accept": "text/html",
         'content-type': "application/x-www-form-urlencoded"
     }
+    CACHE = None
     DELAY = 0.5
     MIN_DELAY = 0.5
     MAX_DELAY = 60
