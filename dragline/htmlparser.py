@@ -6,8 +6,9 @@ import re
 
 
 def links(self):
-    return set(url[2].split('#')[0] for url in self.iterlinks()
-               if re.match('^http://', url) and url[1] == 'href')
+    urls = (url[2].split('#')[0] for url in self.iterlinks()
+            if url[1] == 'href')
+    return set(url for url in urls if re.match('^http://', url))
 
 
 def gettext(self):
