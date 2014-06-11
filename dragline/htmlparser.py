@@ -11,7 +11,7 @@ def links(self):
 
 
 def gettext(self):
-    return "".join(i.strip for i in self.itertext())
+    return "".join(i.strip() for i in self.itertext())
 
 
 def extract(self, rules):
@@ -32,6 +32,7 @@ html.HtmlElement.gettext = gettext
 html.HtmlElement._css_translator = HTMLTranslator()
 html.HtmlElement.cssselect = cssselect
 html.HtmlElement.css = css
+html.HtmlElement.extract = extract
 
 
 def HtmlParser(response):
