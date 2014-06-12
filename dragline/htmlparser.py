@@ -12,11 +12,17 @@ ns['str'] = xpathtostring
 
 
 def extract_urls(self, xpath=''):
+    urlpattern = re.compile(
+        r'^(?:http)s?://'  # http:// or https://
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|'  # domain...
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+        r'(?::\d+)?'  # optional port
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
     if xpath and not xpath.endswith('/'):
         xpath += '/'
     return set(url.split('#')[0] for url in
                self.xpath(xpath + "descendant-or-self::a/@href")
-               if re.match('^http[s]://', url))
+               if urlpattern.match(url))
 
 
 def extract_text(self):
@@ -49,9 +55,9 @@ def HtmlParser(response):
     :param response:
     :type response: :class:`dragline.http.Response`
 
-    This method takes response object as its argument and returns 
+    This method takes response object as its argument and returns
     the lxml etree object.
-    
+
     HtmlParser function returns a lxml object of type Element which got 2 potential methods.
     All the details of lxml object are discussed in section `lxml Element object`_.
     """
