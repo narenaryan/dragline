@@ -1,6 +1,6 @@
 from lxml import html, etree
 from parslepy import Parselet
-from parslepy.funcs import xpathstrip
+from parslepy.funcs import xpathstrip, xpathtostring
 from urlparse import urldefrag, urljoin
 from cssselect import HTMLTranslator
 import re
@@ -8,14 +8,15 @@ import re
 
 ns = etree.FunctionNamespace(None)
 ns['strip'] = xpathstrip
+ns['str'] = xpathtostring
 
 
 def extract_urls(self, xpath=''):
     if xpath and not xpath.endswith('/'):
-        xpath.append('/')
+        xpath += '/'
     return set(url.split('#')[0] for url in
                self.xpath(xpath + "descendant-or-self::a/@href")
-               if re.match('^http://', url))
+               if re.match('^http[s]://', url))
 
 
 def extract_text(self):
