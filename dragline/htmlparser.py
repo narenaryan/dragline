@@ -1,6 +1,6 @@
 from lxml import html, etree
 from parslepy import Parselet
-from parslepy.funcs import xpathstrip
+from parslepy.funcs import xpathstrip, xpathtostring
 from urlparse import urldefrag, urljoin
 from cssselect import HTMLTranslator
 import re
@@ -8,23 +8,18 @@ import re
 
 ns = etree.FunctionNamespace(None)
 ns['strip'] = xpathstrip
-
-
-def links(self):
-    urls = (url[2].split('#')[0] for url in self.iterlinks()
-            if url[1] == 'href')
-    return set(url for url in urls if re.match('^http://', url))
+ns['str'] = xpathtostring
 
 
 def extract_urls(self, xpath=''):
-    if xpath:
-        return set(url.split('#')[0] for url in self.xpath(xpath + "//a/@href")
-                   if re.match('^http://', url))
-    else:
-        return self.links()
+    if xpath and not xpath.endswith('/'):
+        xpath += '/'
+    return set(url.split('#')[0] for url in
+               self.xpath(xpath + "descendant-or-self::a/@href")
+               if re.match('^http[s]://', url))
 
 
-def gettext(self):
+def extract_text(self):
     return "".join(i.strip() for i in self.itertext())
 
 
@@ -41,8 +36,7 @@ def css(self, expr):
     return self.xpath(self.cssselect(expr))
 
 
-html.HtmlElement.links = links
-html.HtmlElement.gettext = gettext
+html.HtmlElement.extract_text = extract_text
 html.HtmlElement._css_translator = HTMLTranslator()
 html.HtmlElement.cssselect = cssselect
 html.HtmlElement.css = css
