@@ -36,6 +36,7 @@ class Request:
     headers = {}
     callback = None
     meta = None
+    retry = 0
 
     def __init__(self, url, method="GET", form_data=None, headers={}, callback=None, meta=None,):
         self.url = url

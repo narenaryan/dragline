@@ -30,8 +30,8 @@ def extract_text(self):
 
 
 def extract(self, rules, strict=False):
-    parselet = Parselet(rules)
-    return parselet.extract(self, rules, strict=strict)
+    parselet = Parselet(rules, strict=strict)
+    return parselet.extract(self)
 
 
 def cssselect(self, expr):

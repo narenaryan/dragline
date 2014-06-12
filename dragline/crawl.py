@@ -101,10 +101,11 @@ class Crawler():
                         for i in requests:
                             crawl.insert(i)
                 except RequestError as e:
-                    request.RETRY += 1
-                    if request.RETRY >= crawl.settings.MAX_RETRY:
+                    request.retry += 1
+                    if request.retry >= crawl.settings.MAX_RETRY:
                         logger.warning("Rejecting %s", request)
                     else:
+                        logger.debug("Retrying %s", request)
                         crawl.insert(request, False)
                 except KeyboardInterrupt:
                     pass
