@@ -5,7 +5,7 @@ Dragline Tutorial
 =================
 
 Beginning instructions
--------------------
+-----------------------
 Dragline is entirely written in python.It facilitates to create the different spiders upon
 the stack of the performance,robustness and easieness.The most engaging issue with Dragline 
 is the creation of custom spiders using one central crawler that availale in the Dragline library.
@@ -41,18 +41,18 @@ for non-programmers`_.
 
 Creating a project
 ==================
-Let us think our spider name is docspider.
+Let us think our spider name is pydocs.
 
 Before you start scraping, you will have to set up a new Dragline project. Traverse into a
 directory where you'd like to store your spider and its associated code and then run the following command::
 
-   dragline-init docspider
+   dragline-init pydocs
 
 If you are a django developer then you might be familiar with above type of command.
 
-This will create a ``docspider`` directory with the following two files::
+This will create a ``pydocs`` directory with the following two files::
 
-   docspider/
+      pydocs/
         main.py
         settings.py
 
@@ -94,34 +94,38 @@ define the three main, mandatory, attributes:
 
 
 This is the code for our first Spider; save it in a file named
-``main.py`` under the ``docspider`` directory::
+``main.py`` under the ``pydocs`` directory::
 
-    from dragline.htmlparser import HtmlParser
-    from dragline.http import Request
+  from dragline.htmlparser import HtmlParser
+  from dragline.http import Request
 
 
-    class Spider:
+  class Spider:
 
-        def __init__(self, conf):
-            self._name = "FilmFare"
-            self._start = Request("http://www.filmfare.com/reviews/")
-            self._allowed_urls_regex = "http://www.filmfare.com/reviews/"
-            self.conf = conf
+      def __init__(self, conf):
+          self._name = "pydocs"
+          self._start = Request("https://docs.python.org/3/")
+          self._allowed_urls_regex = ".*"
+          self.conf = conf
 
-        def parse(self, response):
-            data = HtmlParser(response)
-            url_xp = "//figure[@class='featured']"
-            for url in data.extract_urls(url_xp):
-                yield Request(url=url, callback="parse_review")
+      def parse(self, response):
+          html = HtmlParser(response)
+          table = html.find('.//table')
+          for url in table.extract_urls():
+              yield Request(url, callback="parse_group")
 
-            for url in data.extract_urls('//div[@class="pageNav"]'):
-                yield Request(url=url, callback="parse")
+      def parse_group(self, response):
+          html = HtmlParser(response)
+          for i in html.extract_urls('//a[@class="reference internal"]'):
+              yield Request(i, callback="parse_page")
 
-        def parse_review(self, response):
-            data = HtmlParser(response)
-            title = data.xpath("//div[@class='TopPart']/h1/text()")
-            if title:
-                print title
+      def parse_page(self, response):
+          html = HtmlParser(response)
+          page = {
+              'title': 'strip(//h1)',
+              'subtitles': ['strip(//h2)']
+          }
+          print html.extract(page)
 
 Crawling
 --------
@@ -133,29 +137,39 @@ To put our spider to work, go to the project's top level directory and run::
 The ``dragline .`` command runs the spider for the ``filmfare.com`` domain. You
 will get an output similar to this::
 
-    2014-05-30 12:28:48,840 [INFO] dragline: Processing GET:http://www.filmfare.com/reviews/
-    2014-05-30 12:28:49,866 [INFO] dragline: Processing GET:http://www.filmfare.com/reviews/movie-review-raanjhanaa-3492.html
-    2014-05-30 12:28:49,867 [INFO] dragline: Processing GET:http://www.filmfare.com/reviews/movie-review-fukrey-3429.html
-    2014-05-30 12:28:49,869 [INFO] dragline: Processing GET:http://www.filmfare.com/reviews/movie-review-man-of-steel-3430.html
-    2014-05-30 12:28:49,870 [INFO] dragline: Processing GET:http://www.filmfare.com/reviews/music-review-ghanchakkar-3512.html
-    2014-05-30 12:28:49,882 [INFO] dragline: Finished processing GET:http://www.filmfare.com/reviews/
-    2014-05-30 12:28:49,883 [INFO] dragline: Processing GET:http://www.filmfare.com/reviews/movie-review-kochadaiiyaan-6217.html
-    ['Movie Review: Raanjhanaa']
-    2014-05-30 12:28:50,622 [INFO] dragline: Finished processing GET:http://www.filmfare.com/reviews/movie-review-raanjhanaa-3492.html
-    ['Movie Review: Fukrey']
-    2014-05-30 12:28:50,628 [INFO] dragline: Finished processing GET:http://www.filmfare.com/reviews/movie-review-fukrey-3429.html
-    ['Music Review: Ghanchakkar']
-    2014-05-30 12:28:50,633 [INFO] dragline: Finished processing GET:http://www.filmfare.com/reviews/music-review-ghanchakkar-3512.html
-    2014-05-30 12:28:50,634 [INFO] dragline: Processing GET:http://www.filmfare.com/reviews/movie-review-heropanti-6216.html
-    ['Movie Review: Man Of Steel']
-    2014-05-30 12:28:50,639 [INFO] dragline: Finished processing GET:http://www.filmfare.com/reviews/movie-review-man-of-steel-3430.html
-    2014-05-30 12:28:50,639 [INFO] dragline: Processing GET:http://www.filmfare.com/reviews/movie-review-xmen-days-of-future-past-6202.html
-    2014-05-30 12:28:50,640 [INFO] dragline: Processing GET:http://www.filmfare.com/reviews/movie-review-the-xpos-6154.html
-    2014-05-30 12:28:50,641 [INFO] dragline: Processing GET:http://www.filmfare.com/reviews/movie-review-godzilla-6145.html
-    ['Movie Review: Kochadaiiyaan']
-    2014-05-30 12:28:50,818 [INFO] dragline: Finished processing GET:http://www.filmfare.com/reviews/movie-review-kochadaiiyaan-6217.html
-
-
-
+    .........
+    2014-06-12 14:57:30,492 [INFO] dragline: Processing GET:https://docs.python.org/3/reference/import.html
+    {'subtitles': [u'4.1. Getting and Installing MacPython\xb6',
+                  u'4.2. The IDE\xb6',
+                  u'4.3. Installing Additional Python Packages\xb6',
+                  u'4.4. GUI Programming on the Mac\xb6',
+                  u'4.5. Distributing Python Applications on the Mac\xb6',
+                  u'4.6. Other Resources\xb6'],
+    'title': u'4. Using Python on a Macintosh\xb6'}
+    2014-06-12 14:57:30,781 [INFO] dragline: Finished processing GET:https://docs.python.org/3/using/mac.html
+    2014-06-12 14:57:30,781 [INFO] dragline: Processing GET:https://docs.python.org/3/reference/datamodel.html
+    {'subtitles': [u'5.1. pyvenv - Creating virtual environments\xb6'],
+    'title': u'5. Additional Tools and Scripts\xb6'}
+    2014-06-12 14:57:32,312 [INFO] dragline: Finished processing GET:https://docs.python.org/3/using/scripts.html
+    2014-06-12 14:57:32,313 [INFO] dragline: Processing GET:https://docs.python.org/3/reference/compound_stmts.html
+    {'subtitles': [u'3.1. Installing Python\xb6',
+                  u'3.2. Alternative bundles\xb6',
+                  u'3.3. Configuring Python\xb6',
+                  u'3.4. Python Launcher for Windows\xb6',
+                  u'3.5. Additional modules\xb6',
+                  u'3.6. Compiling Python on Windows\xb6',
+                  u'3.7. Other resources\xb6'],
+    'title': u'3. Using Python on Windows\xb6'}
+    2014-06-12 14:57:33,267 [INFO] dragline: Finished processing GET:https://docs.python.org/3/using/windows.html
+    {'subtitles': [u'1.1. Command line\xb6', u'1.2. Environment variables\xb6'],
+    'title': u'1. Command line and environment\xb6'}
+    2014-06-12 14:57:33,283 [INFO] dragline: Finished processing GET:https://docs.python.org/3/using/cmdline.html
+    2014-06-12 14:57:33,283 [INFO] dragline: Processing GET:https://docs.python.org/3/reference/introduction.html
+    2014-06-12 14:57:33,284 [INFO] dragline: Processing GET:https://docs.python.org/3/reference/grammar.html
+    {'subtitles': [u'3.1. Objects, values and types\xb6',
+                  u'3.2. The standard type hierarchy\xb6',
+                  u'3.3. Special method names\xb6'],
+    'title': u'3. Data model\xb6'}
+    2014-06-12 14:57:34,926 [INFO] dragline: Finished processing GET:https://docs.python.org/3/reference/datamodel.html
 
 

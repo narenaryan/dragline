@@ -54,6 +54,12 @@ def HtmlParser(response):
     """
     :param response:
     :type response: :class:`dragline.http.Response`
+
+    This method takes response object as its argument and returns 
+    the lxml etree object.
+    
+    HtmlParser function returns a lxml object of type Element which got 2 potential methods.
+    All the details of lxml object are discussed in section `lxml Element object`_.
     """
     element = html.fromstring(response.body, response.url)
     element.make_links_absolute()

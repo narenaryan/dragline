@@ -116,6 +116,9 @@ class Request:
 class Response:
 
     """
+    This function is used to create user defined 
+    respones to test your spider and also in many 
+    other cases.
     :param url: the URL of this response
     :type url: string
 
