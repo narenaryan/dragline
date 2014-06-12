@@ -29,9 +29,9 @@ def extract_text(self):
     return "".join(i.strip() for i in self.itertext())
 
 
-def extract(self, rules):
+def extract(self, rules, strict=False):
     parselet = Parselet(rules)
-    return parselet.extract(self, rules)
+    return parselet.extract(self, rules, strict=strict)
 
 
 def cssselect(self, expr):
