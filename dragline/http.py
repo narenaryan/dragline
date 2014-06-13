@@ -80,7 +80,7 @@ class Request:
         """
         form_data = urlencode(self.form_data) if self.form_data else None
         try:
-            time.sleep(Request.settings.DELAY)
+
             start = time.time()
             http = httplib2.Http(cache=self.settings.CACHE)
             req_headers = self.settings.HEADERS
@@ -89,7 +89,13 @@ class Request:
                 self.url, self.method, form_data, req_headers)
             res = Response(self.url, content, headers, self.meta)
             end = time.time()
-            self.updatedelay(end, start)
+            if headers.fromcache:
+                self.updatedelay(end, start)
+                time.sleep(Request.settings.DELAY)
+
+
+
+
         except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
             raise RequestError(e.message)
         return res
