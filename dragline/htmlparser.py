@@ -58,8 +58,8 @@ def HtmlParser(response):
     This method takes response object as its argument and returns
     the lxml etree object.
 
-    HtmlParser function returns a lxml object of type Element which got 2 potential methods.
-    All the details of lxml object are discussed in section `lxml Element object`_.
+    HtmlParser function returns a lxml object of type HtmlElement which got few potential methods.
+    All the details of lxml object are discussed in section `lxml.html.HtmlElement`.
     """
     element = html.fromstring(response.body, response.url)
     element.make_links_absolute()
