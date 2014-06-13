@@ -134,7 +134,7 @@ To put our spider to work, go to the project's top level directory and run::
 
    dragline .
 
-The ``dragline .`` command runs the spider for the ``filmfare.com`` domain. You
+The ``dragline .`` command runs the spider for the ``docs.python.org`` domain. You
 will get an output similar to this::
 
     .........
