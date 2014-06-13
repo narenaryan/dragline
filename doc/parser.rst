@@ -14,12 +14,13 @@ HtmlParser Function
 .. autofunction:: dragline.htmlparser.HtmlParser
 
 
- lxml.html.HtmlElement object
+lxml.html.HtmlElement object
+----------------------------
 
 HtmlElement object is returned by the HtmlParser function::
     
-    >>>req=Request('www.gutenberg.com')
-    >>>parse_object=HtmlParser(req.send())
+    >>> req = Request('www.gutenberg.com')
+    >>> parse_object = HtmlParser(req.send())
 
 The parsing methods of the modified lxml HtmlElement object are:
     * `xpath`_
@@ -123,6 +124,6 @@ this matches the first div tag in the response html body.
 
 This function returns the list of all matched tags with the given expression.
 
-    >>> mylist=parse_object.findall('.//a')
+    >>> mylist = parse_object.findall('.//a')
 
 
