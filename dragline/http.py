@@ -89,9 +89,12 @@ class Request:
                 self.url, self.method, form_data, req_headers)
             res = Response(self.url, content, headers, self.meta)
             end = time.time()
-            if headers.fromcache:
+
+            if not headers.fromcache:
+
                 self.updatedelay(end, start)
                 time.sleep(Request.settings.DELAY)
+
 
 
 
