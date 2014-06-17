@@ -80,7 +80,6 @@ class Request:
         """
         form_data = urlencode(self.form_data) if self.form_data else None
         try:
-
             start = time.time()
             http = httplib2.Http(cache=self.settings.CACHE)
             req_headers = self.settings.HEADERS
@@ -89,16 +88,9 @@ class Request:
                 self.url, self.method, form_data, req_headers)
             res = Response(self.url, content, headers, self.meta)
             end = time.time()
-
-            if not headers.fromcache:
-
+            if not headers.fromcache and self.settings.AUTOTHROTTLE:
                 self.updatedelay(end, start)
                 time.sleep(Request.settings.DELAY)
-
-
-
-
-
         except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
             raise RequestError(e.message)
         return res
@@ -126,8 +118,8 @@ class Request:
 class Response:
 
     """
-    This function is used to create user defined 
-    respones to test your spider and also in many 
+    This function is used to create user defined
+    respones to test your spider and also in many
     other cases.
     :param url: the URL of this response
     :type url: string
