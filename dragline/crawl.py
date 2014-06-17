@@ -114,8 +114,9 @@ class Crawler():
                 finally:
                     crawl.decr_count()
             else:
-                if crawl.count() == 0 or retry >= 2:
+                if crawl.count() == 0:
                     break
                 else:
                     retry += 1
+                    logging.info("Checking Queue %s times", retry)
                 logger.debug("Waiting for %s", crawl.count())
