@@ -100,7 +100,7 @@ class Crawler():
                         else:
                             requests = callback(response)
                     except:
-                        logging.exception("Failed to execute callback")
+                        logger.exception("Failed to execute callback")
                         requests = None
                     if requests:
                         for i in requests:
