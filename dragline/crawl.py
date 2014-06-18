@@ -74,8 +74,8 @@ class Crawler():
                 return default
         Crawl.settings = CrawlSettings(get('CRAWL'))
         Request.settings = RequestSettings(get('REQUEST'))
-        settings = SpiderSettings(get('SPIDER'))
-        spider = spider_class(settings)
+        spider_settings = SpiderSettings(get('SPIDER'))
+        spider = spider_class(spider_settings)
         Crawler.log = LogSettings(get('LOGFORMATTERS'), get('LOGHANDLERS'),
                                   get('LOGGERS'))
         spider.logger = Crawler.log.getLogger(spider._name)
