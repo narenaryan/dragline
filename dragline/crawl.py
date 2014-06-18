@@ -1,7 +1,7 @@
 import json
 import re
-import logging
-from defaultsettings import CrawlSettings, RequestSettings, SpiderSettings
+from defaultsettings import CrawlSettings, RequestSettings
+from defaultsettings import SpiderSettings, LogSettings
 import redisds
 from http import Request, RequestError
 
@@ -67,22 +67,27 @@ class Crawler():
 
     @classmethod
     def load_spider(Crawler, spider_class, settings):
-        Crawl.settings = CrawlSettings(settings.CRAWL)
-        Request.settings = RequestSettings(settings.REQUEST)
-        settings = SpiderSettings(settings.SPIDER)
+        def get(value, default={}):
+            try:
+                return getattr(settings, value)
+            except AttributeError:
+                return default
+        Crawl.settings = CrawlSettings(get('CRAWL'))
+        Request.settings = RequestSettings(get('REQUEST'))
+        settings = SpiderSettings(get('SPIDER'))
         spider = spider_class(settings)
-        spider.logger = logging.getLogger(spider._name)
+        Crawler.log = LogSettings(get('LOGFORMATTERS'), get('LOGHANDLERS'),
+                                  get('LOGGERS'))
+        spider.logger = Crawler.log.getLogger(spider._name)
         Crawler.crawl = Crawl(spider)
 
     def process_url(self):
         crawl = Crawler.crawl
-        logger = logging.getLogger("dragline")
+        logger = Crawler.log.getLogger("dragline")
         request = Request(None)
-        retry = 0
         while True:
             args = crawl.url_queue.get(timeout=2)
             if args:
-                retry = 0
                 request._set_state(args)
                 logger.info("Processing %s", request)
                 crawl.inc_count()
@@ -116,7 +121,4 @@ class Crawler():
             else:
                 if crawl.count() == 0:
                     break
-                else:
-                    retry += 1
-                    logging.info("Checking Queue %s times", retry)
                 logger.debug("Waiting for %s", crawl.count())

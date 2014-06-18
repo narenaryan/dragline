@@ -81,7 +81,8 @@ class Request:
         form_data = urlencode(self.form_data) if self.form_data else None
         try:
             start = time.time()
-            http = httplib2.Http(cache=self.settings.CACHE)
+            timeout = max(self.settings.DELAY, self.settings.TIMEOUT)
+            http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout)
             req_headers = self.settings.HEADERS
             req_headers.update(self.headers)
             headers, content = http.request(

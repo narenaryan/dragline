@@ -5,14 +5,11 @@ import sys
 import argparse
 import os
 import traceback
-import logging
-import logging.config
-from defaultsettings import SpiderSettings
+from defaultsettings import SpiderSettings, LogSettings
 from crawl import Crawler
 
 
-logging.config.dictConfig(SpiderSettings.LOGCONFIG)
-logger = logging.getLogger("dragline")
+logger = LogSettings().getLogger("dragline")
 
 
 def load_module(path, filename):
