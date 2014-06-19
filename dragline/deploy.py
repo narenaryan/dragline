@@ -3,17 +3,21 @@ import inspect
 from httplib2 import Http
 from urllib import urlencode
 import base64
-import subprocess
-from os.path import normpath, basename
 from runner import load_modules
 import argparse
+import zipfile
 
 
-def zipdir(path, zip):
-    for root, dirs, files in os.walk(path):
-        for file in files:
-            print file
-            zip.write(os.path.join(root, file))
+def zipdir(source, destination):
+    folder = os.path.abspath(source)
+    with zipfile.ZipFile(destination, 'w') as zipf:
+        for root, dirs, files in os.walk(folder):
+            path = os.path.relpath(root, folder)
+            for filename in files:
+                relname = os.path.join(path, filename)
+                absname = os.path.join(root, filename)
+                if filename.endswith(".py"):
+                    zipf.write(absname, relname, zipfile.ZIP_DEFLATED)
 
 
 def deploy(url, username, password, foldername, spider_website=None):
@@ -46,11 +50,7 @@ def deploy(url, username, password, foldername, spider_website=None):
         return "Spider deploying failed"
 
     # zip the folder
-    chfold = os.path.split(os.path.abspath(foldername))[0]
-    os.chdir(chfold)
-    comm = ["zip", "-r", "/tmp/%s.zip" %
-            spider_name, ".", "-i", basename(normpath(foldername)) + "/*.py"]
-    subprocess.call(comm)
+    zipdir(foldername, "/tmp/%s.zip" % spider_name)
     zipf = base64.encodestring(open("/tmp/%s.zip" % spider_name, "rb").read())
     post_data = {'username': username, 'password': password, 'name':
                  spider_name, 'zipfile': zipf}
@@ -62,6 +62,7 @@ def deploy(url, username, password, foldername, spider_website=None):
         url, "POST", body=urlencode(post_data), headers=headers)
     # read zip file
     return content
+
 
 def deploy_spider():
     parser = argparse.ArgumentParser()
@@ -75,7 +76,5 @@ def deploy_spider():
     print result
 
 
-
 if __name__ == "__main__":
     deploy_spider()
-
