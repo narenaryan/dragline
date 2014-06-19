@@ -5,7 +5,7 @@ from urllib import urlencode
 import base64
 import subprocess
 from os.path import normpath, basename
-from runner import load_module
+from runner import load_modules
 import argparse
 
 
@@ -22,7 +22,7 @@ def deploy(url, username, password, foldername, spider_website=None):
         return "Not a valid spider"
 
     # check if the main.py contain a spider class
-    module = load_module(foldername, "main")
+    module, settings = load_modules(foldername)
     # check if main.py contain a spider class
     try:
         spider = getattr(module, "Spider")
