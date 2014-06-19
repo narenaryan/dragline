@@ -13,11 +13,14 @@ class Crawl:
         redis_args = dict(host=self.settings.REDIS_URL,
                           port=self.settings.REDIS_PORT,
                           db=self.settings.REDIS_DB)
-        self.url_set = redisds.Set('urlset', spider._name, **redis_args)
-        self.url_queue = redisds.Queue('urlqueue', spider._name, json,
+        if hasattr(self.settings, 'NAMESPACE'):
+            redis_args['namespace'] = self.settings.NAMESPACE
+        else:
+            redis_args['namespace'] = spider._name
+        self.url_set = redisds.Set('urlset', **redis_args)
+        self.url_queue = redisds.Queue('urlqueue', serializer=json,
                                        **redis_args)
-        self.running_count = redisds.Counter("count", namespace=spider._name,
-                                             **redis_args)
+        self.running_count = redisds.Counter("count", **redis_args)
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
         self.spider = spider
         self.start()

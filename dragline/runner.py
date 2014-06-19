@@ -27,7 +27,7 @@ def load_modules(path, spiderfile="main", settingsfile="settings"):
 
 
 def main(spider_module, settings_module):
-    spider = getattr(spider_module, "Spider")
+    spider = spider_module.Spider
     Crawler.load_spider(spider, settings_module)
     crawlers = [Crawler() for i in xrange(5)]
     try:
