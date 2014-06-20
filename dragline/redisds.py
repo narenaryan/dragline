@@ -1,5 +1,7 @@
 import redis
 
+import time
+import uuid
 
 class Queue(object):
 
@@ -117,3 +119,92 @@ class Counter(object):
             return 0
         else:
             return int(value)
+
+
+
+
+
+
+acquire_lua = """
+local result = redis.call('SETNX', KEYS[1], ARGV[1])
+if result == 1 then
+    redis.call('EXPIRE', KEYS[1], ARGV[2])
+end
+return result"""
+
+
+release_lua = """
+if redis.call('GET', KEYS[1]) == ARGV[1] then
+    return redis.call('DEL', KEYS[1])
+end
+return 0
+"""
+
+
+class Lock(object):
+    def __init__(self, key, expires=60, timeout=10, **redis_kwargs):
+        """Distributed locking using Redis Lua scripting for CAS operations.
+
+        Usage::
+
+            with Lock('my_lock'):
+                print "Critical section"
+
+        :param  expires:    We consider any existing lock older than
+                            ``expires`` seconds to be invalid in order to
+                            detect crashed clients. This value must be higher
+                            than it takes the critical section to execute.
+        :param  timeout:    If another client has already obtained the lock,
+                            sleep for a maximum of ``timeout`` seconds before
+                            giving up. A value of 0 means we never wait.
+        :param  redis:      The redis instance to use if the default global
+                            redis connection is not desired.
+
+        """
+        self.key = key
+        self.timeout = timeout
+        self.expires = expires
+        self.redis = redis.Redis(**redis_kwargs)
+        self._acquire_lua = redis.register_script(acquire_lua)
+        self._release_lua = redis.register_script(release_lua)
+        self.lock_key = None
+
+    def __enter__(self):
+        self.acquire()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.release()
+
+    def acquire(self):
+        """Acquire the lock
+
+        :returns: Whether the lock was acquired or not
+        :rtype: bool
+
+        """
+        self.lock_key = uuid.uuid4().hex
+        timeout = self.timeout
+        while timeout >= 0:
+            if self._acquire_lua(keys=[self.key],
+                                 args=[self.lock_key, self.expires]):
+                return
+            timeout -= 1
+            if timeout >= 0:
+                time.sleep(1)
+        raise LockTimeout("Timeout while waiting for lock")
+
+    def release(self):
+        """Release the lock
+
+        This only releases the lock if it matches the UUID we think it
+        should have, to prevent deleting someone else's lock if we
+        lagged.
+
+        """
+        if self.lock_key:
+            self._release_lua(keys=[self.key], args=[self.lock_key])
+        self.lock_key = None
+
+
+class LockTimeout(BaseException):
+    """Raised in the event a timeout occurs while waiting for a lock"""
