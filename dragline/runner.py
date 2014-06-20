@@ -1,3 +1,5 @@
+from dragline import __version__
+
 from gevent import monkey, spawn, joinall
 monkey.patch_all()
 
@@ -44,6 +46,8 @@ def main(spider_module, settings_module):
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('spider', help='spider directory name')
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
     path = os.path.abspath(args.spider)
     spider_module, settings_module = load_modules(path)
