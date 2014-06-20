@@ -21,37 +21,45 @@ class Crawl:
         self.url_set = redisds.Set('urlset', **redis_args)
         self.url_queue = redisds.Queue('urlqueue', serializer=json,
                                        **redis_args)
-        self.running_count = redisds.Counter("count", **redis_args)
+        self.runners = redisds.Counter("count", **redis_args)
+        self.lock = BoundedSemaphore(1)
+        self.running_count = 0
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
         self.spider = spider
         self.start()
 
     def start(self):
         request = self.spider._start
-        if self.settings.MODE in ["NORM", "RESUME"]:
-            if self.settings.MODE == "NORM":
-                self.url_queue.clear()
-                self.url_set.clear()
-            self.running_count.set(0)
         if request.callback is None:
             request.callback = "parse"
         self.insert(request)
 
     def clear(self, finished):
-        if self.settings.MODE == "NORM" or finished:
+        if self.settings.MODE != "RESUME" or finished:
             self.url_queue.clear()
             self.url_set.clear()
-        if self.settings.MODE != "DISTRIBUTE":
-            self.running_count.set(0)
+        if self.settings.MODE == "DISTRIBUTE" and not finished:
+            self.runners.decr()
 
-    def count(self):
-        return self.running_count.get()
+    def completed(self):
+        if self.settings.MODE == "DISTRIBUTE":
+            return self.runners.get() == 0
+        else:
+            return self.running_count == 0
 
     def inc_count(self):
-        self.running_count.inc()
+        self.lock.acquire()
+        if self.running_count == 0:
+            self.runners.inc()
+        self.running_count += 1
+        self.lock.release()
 
     def decr_count(self):
-        self.running_count.decr()
+        self.lock.acquire()
+        self.running_count -= 1
+        if self.running_count == 0:
+            self.runners.decr()
+        self.lock.release()
 
     def insert(self, request, check=True):
         if not isinstance(request, Request):
@@ -103,6 +111,9 @@ class Crawler():
                             requests = callback(response, request.meta)
                         else:
                             requests = callback(response)
+                    except KeyboardInterrupt:
+                        crawl.insert(request, False)
+                        raise KeyboardInterrupt
                     except:
                         logger.exception("Failed to execute callback")
                         requests = None
@@ -118,11 +129,14 @@ class Crawler():
                         crawl.insert(request, False)
                 #except Exception as e:
                 #    logger.exception('Failed to open the url %s', request)
+                except KeyboardInterrupt:
+                    crawl.insert(request, False)
+                    raise KeyboardInterrupt
                 else:
                     logger.info("Finished processing %s", request)
                 finally:
                     crawl.decr_count()
             else:
-                if crawl.count() == 0:
+                if crawl.completed():
                     break
-                logger.debug("Waiting for %s", crawl.count())
+                logger.debug("Waiting for %s", crawl.running_count)
