@@ -3,8 +3,8 @@ import redis
 import time
 import uuid
 
-class Queue(object):
 
+class Queue(object):
     """Simple Queue with Redis Backend"""
 
     def __init__(self, name, namespace='queue', serializer=None,
@@ -60,7 +60,6 @@ class Queue(object):
 
 
 class Set(object):
-
     "A simple set with redis backend"
 
     def __init__(self, name, namespace='set', **redis_kwargs):
@@ -121,17 +120,12 @@ class Counter(object):
             return int(value)
 
 
-
-
-
-
 acquire_lua = """
 local result = redis.call('SETNX', KEYS[1], ARGV[1])
 if result == 1 then
     redis.call('EXPIRE', KEYS[1], ARGV[2])
 end
 return result"""
-
 
 release_lua = """
 if redis.call('GET', KEYS[1]) == ARGV[1] then
@@ -164,9 +158,8 @@ class Lock(object):
         self.key = key
         self.timeout = timeout
         self.expires = expires
-        self.redis = redis.Redis(**redis_kwargs)
-        self._acquire_lua = redis.register_script(acquire_lua)
-        self._release_lua = redis.register_script(release_lua)
+        self._db = redis.Redis(**redis_kwargs)
+
         self.lock_key = None
 
     def __enter__(self):
@@ -185,8 +178,8 @@ class Lock(object):
         self.lock_key = uuid.uuid4().hex
         timeout = self.timeout
         while timeout >= 0:
-            if self._acquire_lua(keys=[self.key],
-                                 args=[self.lock_key, self.expires]):
+            if self._db.setnx(self.key, self.lock_key):
+                self._db.expire(self.key, self.expires)
                 return
             timeout -= 1
             if timeout >= 0:
@@ -201,8 +194,8 @@ class Lock(object):
         lagged.
 
         """
-        if self.lock_key:
-            self._release_lua(keys=[self.key], args=[self.lock_key])
+        if self._db.get(self.key) == self.lock_key:
+            self._db.delete(self.key)
         self.lock_key = None
 
 
