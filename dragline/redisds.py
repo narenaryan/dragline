@@ -136,7 +136,7 @@ return 0
 
 
 class Lock(object):
-    def __init__(self, key, expires=60, timeout=10, **redis_kwargs):
+    def __init__(self, key, expires=60, timeout=None, **redis_kwargs):
         """Distributed locking using Redis Lua scripting for CAS operations.
 
         Usage::
@@ -159,7 +159,6 @@ class Lock(object):
         self.timeout = timeout
         self.expires = expires
         self._db = redis.Redis(**redis_kwargs)
-
         self.lock_key = None
 
     def __enter__(self):
@@ -177,12 +176,13 @@ class Lock(object):
         """
         self.lock_key = uuid.uuid4().hex
         timeout = self.timeout
-        while timeout >= 0:
+        while timeout is None or timeout >= 0:
             if self._db.setnx(self.key, self.lock_key):
                 self._db.expire(self.key, self.expires)
                 return
-            timeout -= 1
-            if timeout >= 0:
+            if timeout is not None:
+                timeout -= 1
+            if timeout is None or timeout >= 0:
                 time.sleep(1)
         raise LockTimeout("Timeout while waiting for lock")
 
