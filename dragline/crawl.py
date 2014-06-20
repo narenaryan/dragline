@@ -3,6 +3,7 @@ import re
 from defaultsettings import CrawlSettings, RequestSettings
 from defaultsettings import SpiderSettings, LogSettings
 import redisds
+from gevent.coros import BoundedSemaphore
 from http import Request, RequestError
 
 
@@ -115,8 +116,8 @@ class Crawler():
                     else:
                         logger.debug("Retrying %s", request)
                         crawl.insert(request, False)
-                except Exception as e:
-                    logger.exception('Failed to open the url %s', request)
+                #except Exception as e:
+                #    logger.exception('Failed to open the url %s', request)
                 else:
                     logger.info("Finished processing %s", request)
                 finally:
