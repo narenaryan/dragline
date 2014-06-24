@@ -120,20 +120,6 @@ class Counter(object):
             return int(value)
 
 
-acquire_lua = """
-local result = redis.call('SETNX', KEYS[1], ARGV[1])
-if result == 1 then
-    redis.call('EXPIRE', KEYS[1], ARGV[2])
-end
-return result"""
-
-release_lua = """
-if redis.call('GET', KEYS[1]) == ARGV[1] then
-    return redis.call('DEL', KEYS[1])
-end
-return 0
-"""
-
 
 class Lock(object):
     def __init__(self, key, expires=60, timeout=None, **redis_kwargs):
@@ -174,6 +160,9 @@ class Lock(object):
         :rtype: bool
 
         """
+        if self._db.get(self.key) == self.lock_key:
+            self._db.expire(self.key, self.expires)
+            return
         self.lock_key = uuid.uuid4().hex
         timeout = self.timeout
         while timeout is None or timeout >= 0:

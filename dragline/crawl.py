@@ -112,7 +112,6 @@ class Crawler():
                         else:
                             requests = callback(response)
                     except KeyboardInterrupt:
-                        crawl.insert(request, False)
                         raise KeyboardInterrupt
                     except:
                         logger.exception("Failed to execute callback")
