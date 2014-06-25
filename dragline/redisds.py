@@ -1,10 +1,10 @@
 import redis
-
 import time
 import uuid
 
 
 class Queue(object):
+
     """Simple Queue with Redis Backend"""
 
     def __init__(self, name, namespace='queue', serializer=None,
@@ -60,6 +60,7 @@ class Queue(object):
 
 
 class Set(object):
+
     "A simple set with redis backend"
 
     def __init__(self, name, namespace='set', **redis_kwargs):
@@ -96,6 +97,7 @@ class Set(object):
 
 
 class Counter(object):
+
     def __init__(self, name, value=None, namespace='counter', **redis_kwargs):
         """The default connection parameters are: host='localhost', port=6379, db=0"""
         self.__db = redis.Redis(**redis_kwargs)
@@ -120,8 +122,8 @@ class Counter(object):
             return int(value)
 
 
-
 class Lock(object):
+
     def __init__(self, key, expires=60, timeout=None, **redis_kwargs):
         """Distributed locking using Redis Lua scripting for CAS operations.
 
@@ -160,9 +162,6 @@ class Lock(object):
         :rtype: bool
 
         """
-        if self._db.get(self.key) == self.lock_key:
-            self._db.expire(self.key, self.expires)
-            return
         self.lock_key = uuid.uuid4().hex
         timeout = self.timeout
         while timeout is None or timeout >= 0:
@@ -174,6 +173,12 @@ class Lock(object):
             if timeout is None or timeout >= 0:
                 time.sleep(1)
         raise LockTimeout("Timeout while waiting for lock")
+
+    def extend(self):
+        if self._db.get(self.key) == self.lock_key:
+            self._db.expire(self.key, self.expires)
+            return True
+        return False
 
     def release(self):
         """Release the lock
@@ -189,4 +194,5 @@ class Lock(object):
 
 
 class LockTimeout(BaseException):
+
     """Raised in the event a timeout occurs while waiting for a lock"""
