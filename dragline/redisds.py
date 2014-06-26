@@ -224,11 +224,11 @@ class Lock(object):
 
 class WorkerThread(threading.Thread):
 
-    def __init__(self, runner, sleep=0, *args, **kwargs):
+    def __init__(self, target, sleep=0, *args, **kwargs):
         super(WorkerThread, self).__init__(*args, **kwargs)
         self._running = False
-        self.runner = runner
-        self.sleep = sleep
+        self.__target = target
+        self.__sleep = sleep
         self.start()
 
     def run(self):
@@ -236,12 +236,12 @@ class WorkerThread(threading.Thread):
             return
         self._running = True
         while self._running:
-            self.runner()
-            time.sleep(self.sleep)
+            self.__target()
+            time.sleep(self.__sleep)
 
     def stop(self):
         self._running = False
-        self.join()
+        self.join(timeout=0)
 
 
 class LockTimeout(BaseException):
