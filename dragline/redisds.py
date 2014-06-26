@@ -47,6 +47,12 @@ class Queue(object):
         """Return True if the queue is empty, False otherwise."""
         return self.qsize() == 0
 
+    def remove(self, item):
+        """Remove all elements in the queue equal to item."""
+        if self.serializer:
+            item = self.serializer.dumps(item)
+        return self.__db.lrem(self.key, 0, item)
+
     def put(self, item):
         """Put item into the queue."""
         if self.serializer:
@@ -162,7 +168,8 @@ class Lock(object):
         self.key = key
         self.timeout = timeout
         self.expires = expires
-        self._db = redis.Redis(**redis_kwargs)
+        self.__db = redis.Redis(
+            connection_pool=poolmanager.getpool(**redis_kwargs))
         self.lock_key = None
 
     def __enter__(self):
@@ -181,8 +188,8 @@ class Lock(object):
         self.lock_key = uuid.uuid4().hex
         timeout = self.timeout
         while timeout is None or timeout >= 0:
-            if self._db.setnx(self.key, self.lock_key):
-                self._db.expire(self.key, self.expires)
+            if self.__db.setnx(self.key, self.lock_key):
+                self.__db.expire(self.key, self.expires)
                 return
             if timeout is not None:
                 timeout -= 1
@@ -191,8 +198,8 @@ class Lock(object):
         raise LockTimeout("Timeout while waiting for lock")
 
     def extend(self):
-        if self._db.get(self.key) == self.lock_key:
-            self._db.expire(self.key, self.expires)
+        if self.__db.get(self.key) == self.lock_key:
+            self.__db.expire(self.key, self.expires)
             return True
         return False
 
@@ -204,8 +211,8 @@ class Lock(object):
         lagged.
 
         """
-        if self._db.get(self.key) == self.lock_key:
-            self._db.delete(self.key)
+        if self.__db.get(self.key) == self.lock_key:
+            self.__db.delete(self.key)
         self.lock_key = None
 
 
