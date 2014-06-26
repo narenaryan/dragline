@@ -3,6 +3,19 @@ import time
 import uuid
 
 
+class RedisPoolManager:
+    def __init__(self):
+        self.pools = {}
+
+    def getpool(self, host='localhost', port=6379, db=0):
+        url = "redis://%s:%s/%d" % (host, port, db)
+        if url not in self.pools:
+            self.pools[url] = redis.BlockingConnectionPool.from_url(url)
+        return self.pools[url]
+
+poolmanager = RedisPoolManager()
+
+
 class Queue(object):
 
     """Simple Queue with Redis Backend"""
@@ -14,7 +27,8 @@ class Queue(object):
             namespace='queue', serializer=None, hash_func=usha1
             host='localhost', port=6379, db=0
         """
-        self.__db = redis.Redis(**redis_kwargs)
+        self.__db = redis.Redis(
+            connection_pool=poolmanager.getpool(**redis_kwargs))
         self.key = '%s:%s' % (namespace, name)
         self.serializer = serializer
 
@@ -65,7 +79,8 @@ class Set(object):
 
     def __init__(self, name, namespace='set', **redis_kwargs):
         """The default connection parameters are: host='localhost', port=6379, db=0"""
-        self.__db = redis.Redis(**redis_kwargs)
+        self.__db = redis.Redis(
+            connection_pool=poolmanager.getpool(**redis_kwargs))
         self.key = '%s:%s' % (namespace, name)
 
     def __len__(self):
@@ -100,7 +115,8 @@ class Counter(object):
 
     def __init__(self, name, value=None, namespace='counter', **redis_kwargs):
         """The default connection parameters are: host='localhost', port=6379, db=0"""
-        self.__db = redis.Redis(**redis_kwargs)
+        self.__db = redis.Redis(
+            connection_pool=poolmanager.getpool(**redis_kwargs))
         self.key = '%s:%s' % (namespace, name)
         if value is not None:
             self.set(value)
