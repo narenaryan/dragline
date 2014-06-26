@@ -1,9 +1,11 @@
 import redis
 import time
 import uuid
+import threading
 
 
 class RedisPoolManager:
+
     def __init__(self):
         self.pools = {}
 
@@ -51,7 +53,7 @@ class Queue(object):
         """Remove all elements in the queue equal to item."""
         if self.serializer:
             item = self.serializer.dumps(item)
-        return self.__db.lrem(self.key, 0, item)
+        return self.__db.lrem(self.key, item, 0)
 
     def put(self, item):
         """Put item into the queue."""
@@ -171,6 +173,7 @@ class Lock(object):
         self.__db = redis.Redis(
             connection_pool=poolmanager.getpool(**redis_kwargs))
         self.lock_key = None
+        self._thread = None
 
     def __enter__(self):
         self.acquire()
@@ -190,6 +193,7 @@ class Lock(object):
         while timeout is None or timeout >= 0:
             if self.__db.setnx(self.key, self.lock_key):
                 self.__db.expire(self.key, self.expires)
+                self._thread = WorkerThread(self.extend, self.expires / 2)
                 return
             if timeout is not None:
                 timeout -= 1
@@ -198,7 +202,7 @@ class Lock(object):
         raise LockTimeout("Timeout while waiting for lock")
 
     def extend(self):
-        if self.__db.get(self.key) == self.lock_key:
+        if self.lock_key and self.__db.get(self.key) == self.lock_key:
             self.__db.expire(self.key, self.expires)
             return True
         return False
@@ -213,7 +217,31 @@ class Lock(object):
         """
         if self.__db.get(self.key) == self.lock_key:
             self.__db.delete(self.key)
+        if self._thread and self._thread.is_alive():
+            self._thread.stop()
         self.lock_key = None
+
+
+class WorkerThread(threading.Thread):
+
+    def __init__(self, runner, sleep=0, *args, **kwargs):
+        super(WorkerThread, self).__init__(*args, **kwargs)
+        self._running = False
+        self.runner = runner
+        self.sleep = sleep
+        self.start()
+
+    def run(self):
+        if self._running:
+            return
+        self._running = True
+        while self._running:
+            self.runner()
+            time.sleep(self.sleep)
+
+    def stop(self):
+        self._running = False
+        self.join()
 
 
 class LockTimeout(BaseException):
