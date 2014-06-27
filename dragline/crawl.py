@@ -5,6 +5,7 @@ from defaultsettings import SpiderSettings, LogSettings
 import redisds
 from gevent.coros import BoundedSemaphore
 from http import Request, RequestError
+from uuid import uuid4
 
 
 class Crawl:
@@ -21,7 +22,8 @@ class Crawl:
         self.url_set = redisds.Set('urlset', **redis_args)
         self.url_queue = redisds.Queue('urlqueue', serializer=json,
                                        **redis_args)
-        self.runners = redisds.Counter("count", **redis_args)
+        self.runner = redisds.Lock("runner:%s" % uuid4().hex, **redis_args)
+        self.runners = redisds.Dict("runner:*", **redis_args)
         self.lock = BoundedSemaphore(1)
         self.running_count = 0
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
@@ -29,28 +31,27 @@ class Crawl:
         self.start()
 
     def start(self):
+        if not self.settings.RESUME:
+            self.url_queue.clear()
+            self.url_set.clear()
         request = self.spider._start
         if request.callback is None:
             request.callback = "parse"
         self.insert(request)
 
     def clear(self, finished):
-        if self.settings.MODE != "RESUME" or finished:
+        self.runner.release()
+        if finished:
             self.url_queue.clear()
             self.url_set.clear()
-        if self.settings.MODE == "DISTRIBUTE" and not finished:
-            self.runners.decr()
 
     def completed(self):
-        if self.settings.MODE == "DISTRIBUTE":
-            return self.runners.get() == 0
-        else:
-            return self.running_count == 0
+        return len(self.runners) == 0
 
     def inc_count(self):
         self.lock.acquire()
         if self.running_count == 0:
-            self.runners.inc()
+            self.runner.acquire()
         self.running_count += 1
         self.lock.release()
 
@@ -58,7 +59,7 @@ class Crawl:
         self.lock.acquire()
         self.running_count -= 1
         if self.running_count == 0:
-            self.runners.decr()
+            self.runner.release()
         self.lock.release()
 
     def insert(self, request, check=True):
@@ -126,7 +127,7 @@ class Crawler():
                     else:
                         logger.debug("Retrying %s", request)
                         crawl.insert(request, False)
-                #except Exception as e:
+                # except Exception as e:
                 #    logger.exception('Failed to open the url %s', request)
                 except KeyboardInterrupt:
                     crawl.insert(request, False)

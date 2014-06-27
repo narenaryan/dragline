@@ -46,11 +46,18 @@ def main(spider_module, settings_module):
 def run():
     parser = argparse.ArgumentParser()
     parser.add_argument('spider', help='spider directory name')
+    parser.add_argument('--resume', '-r', action='store_true',
+                        help="resume crawl")
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
     path = os.path.abspath(args.spider)
     spider_module, settings_module = load_modules(path)
+    if args.resume:
+        try:
+            settings_module.CRAWL['RESUME'] = True
+        except AttributeError:
+            settings_module.CRAWL = {'RESUME': True}
     main(spider_module, settings_module)
 
 if __name__ == "__main__":

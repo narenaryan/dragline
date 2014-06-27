@@ -64,7 +64,7 @@ class LogSettings:
 
 
 class CrawlSettings(Settings):
-    MODE = "NORM"
+    RESUME = False
     MAX_RETRY = 3
     REDIS_URL = 'localhost'
     REDIS_PORT = 6379

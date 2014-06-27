@@ -81,6 +81,24 @@ class Queue(object):
         return self.get(False)
 
 
+class Dict(object):
+
+    """Simple Queue with Redis Backend"""
+
+    def __init__(self, pattern='*', namespace='dict', **redis_kwargs):
+        """
+        The default parameters are:
+            namespace='queue', serializer=None, hash_func=usha1
+            host='localhost', port=6379, db=0
+        """
+        self.__db = redis.Redis(
+            connection_pool=poolmanager.getpool(**redis_kwargs))
+        self.pattern = '%s:%s' % (namespace, pattern)
+
+    def __len__(self):
+        return len(self.__db.keys(self.pattern))
+
+
 class Set(object):
 
     "A simple set with redis backend"
@@ -148,7 +166,7 @@ class Counter(object):
 
 class Lock(object):
 
-    def __init__(self, key, expires=60, timeout=None, **redis_kwargs):
+    def __init__(self, key, expires=60, namespace='', timeout=None, **redis_kwargs):
         """Distributed locking using Redis Lua scripting for CAS operations.
 
         Usage::
@@ -167,7 +185,7 @@ class Lock(object):
                             redis connection is not desired.
 
         """
-        self.key = key
+        self.key = '%s:%s' % (namespace, key)
         self.timeout = timeout
         self.expires = expires
         self.__db = redis.Redis(
