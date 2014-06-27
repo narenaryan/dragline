@@ -70,28 +70,29 @@ def upload(url, username, password, foldername, spider_website=None):
     return content
 
 
-def deploy(serv_name, spider_name):
+def deploy(serv_name, spider_dir):
     parser = ConfigParser.SafeConfigParser()
     parser.read(config_file)
     try:
         args = dict(parser.items(serv_name))
     except ConfigParser.NoSectionError:
         print "first add server using: dragline-admin addserver %s" % serv_name
-    args['foldername'] = spider_name
+        return
+    args['foldername'] = spider_dir
     print upload(**args)
 
 
-def generate(spider_name):
+def generate(spider_dir):
     main = pkgutil.get_data(__package__, "templates/main.tem")
     s = Template(main)
-    main = s.substitute(spider_name=spider_name)
+    main = s.substitute(spider_name=spider_dir)
     settings = pkgutil.get_data(__package__, "templates/settings.tem")
 
-    os.makedirs(spider_name)
-    mainfile = open(spider_name + "/main.py", "w")
+    os.makedirs(spider_dir)
+    mainfile = open(os.path.join(spider_dir, "main.py"), "w")
     mainfile.write(main)
     mainfile.close()
-    settfile = open(spider_name + "/settings.py", "w")
+    settfile = open(os.path.join(spider_dir, "settings.py"), "w")
     settfile.write(settings)
     settfile.close()
 
