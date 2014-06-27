@@ -8,5 +8,5 @@ REQUEST = {
 
 }
 CRAWL = {
-    "MODE": "NORM"
+    "RESUME": False
 }
