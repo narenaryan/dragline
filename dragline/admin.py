@@ -73,7 +73,10 @@ def upload(url, username, password, foldername, spider_website=None):
 def deploy(serv_name, spider_name):
     parser = ConfigParser.SafeConfigParser()
     parser.read(config_file)
-    args = dict(parser.items(serv_name))
+    try:
+        args = dict(parser.items(serv_name))
+    except ConfigParser.NoSectionError:
+        print "first add server using: dragline-admin addserver %s" % serv_name
     args['foldername'] = spider_name
     print upload(**args)
 

@@ -46,7 +46,7 @@ Let us think our spider name is pydocs.
 Before you start scraping, you will have to set up a new Dragline project. Traverse into a
 directory where you'd like to store your spider and its associated code and then run the following command::
 
-   dragline-init pydocs
+   dragline-admin init pydocs
 
 If you are a django developer then you might be familiar with above type of command.
 
