@@ -120,6 +120,9 @@ class Dict(object):
         keys = [key.split(':')[n] for key in self.__db.keys(self.pattern)]
         return ((key, self[key]) for key in keys)
 
+    def clear(self):
+        return self.__db.delete(*self.__db.keys(self.pattern))
+
 
 class Set(object):
 
