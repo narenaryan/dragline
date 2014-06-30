@@ -135,14 +135,22 @@ class Response:
     :type meta: dict
 
     """
+    url = None
+    body = ""
+    headers = {}
+    meta = None
 
     def __init__(self, url=None, body=None, headers=None, meta=None):
-        self.url = url
-        self.body = body
-        self.headers = headers
-        self.meta = meta
-        if 'status' in headers:
-            self.status = headers['status']
+        if url:
+            self.url = url
+        if body:
+            self.body = body
+        if headers:
+            self.headers = headers
+            if 'status' in headers:
+                self.status = headers['status']
+        if meta:
+            self.meta = meta
 
     def __len__(self):
         if 'content-length' in self.headers:
