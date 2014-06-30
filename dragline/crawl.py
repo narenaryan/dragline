@@ -31,7 +31,7 @@ class Crawl:
         self.start()
 
     def start(self):
-        if not self.settings.RESUME:
+        if not self.settings.RESUME and self.completed():
             self.url_queue.clear()
             self.url_set.clear()
         request = self.spider._start
