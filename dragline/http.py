@@ -57,7 +57,7 @@ class Request:
     def __str__(self):
         return self.get_unique_id(False)
 
-    def usha1(self, x):
+    def __usha1(self, x):
         """sha1 with unicode support"""
         if isinstance(x, unicode):
             return sha1(x.encode('utf-8')).hexdigest()
@@ -103,7 +103,7 @@ class Request:
                 {i: j for i, j in sorted(self.form_data.items(),
                                          key=lambda t: t[0])})
         if hashing:
-            return self.usha1(request)
+            return self.__usha1(request)
         else:
             return request
 
@@ -141,3 +141,10 @@ class Response:
         self.body = body
         self.headers = headers
         self.meta = meta
+        if 'status' in headers:
+            self.status = headers['status']
+
+    def __len__(self):
+        if 'content-length' in self.headers:
+            return int(self.headers['content-length'])
+        return len(self.body)

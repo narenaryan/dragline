@@ -1,6 +1,6 @@
 gevent>=1.0.0
 httplib2>=0.9
-redis>=2.9.0
+redis>=2.10.0
 sphinx_rtd_theme
 cssselect
 parslepy

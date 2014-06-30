@@ -98,6 +98,28 @@ class Dict(object):
     def __len__(self):
         return len(self.__db.keys(self.pattern))
 
+    def __setitem__(self, idx, value):
+        name = self.pattern.replace('*', idx)
+        self.__db.set(name, value)
+
+    def __getitem__(self, key):
+        name = self.pattern.replace('*', key)
+        if self.__db.type(name) != 'string':
+            return None
+        value = self.__db.get(name)
+        if value is None:
+            return 0
+        if value.isdigit():
+            return int(value)
+        return value
+
+    def __iter__(self):
+        for n, i in enumerate(self.pattern.split(':')):
+            if i == "*":
+                break
+        keys = [key.split(':')[n] for key in self.__db.keys(self.pattern)]
+        return ((key, self[key]) for key in keys)
+
 
 class Set(object):
 

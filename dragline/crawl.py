@@ -6,6 +6,7 @@ import redisds
 from gevent.coros import BoundedSemaphore
 from http import Request, RequestError
 from uuid import uuid4
+from datetime import datetime
 
 
 class Crawl:
@@ -24,6 +25,7 @@ class Crawl:
                                        **redis_args)
         self.runner = redisds.Lock("runner:%s" % uuid4().hex, **redis_args)
         self.runners = redisds.Dict("runner:*", **redis_args)
+        self.stats = redisds.Dict("stats:*", **redis_args)
         self.lock = BoundedSemaphore(1)
         self.running_count = 0
         self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
@@ -38,10 +40,14 @@ class Crawl:
         if request.callback is None:
             request.callback = "parse"
         self.insert(request)
+        self.stats['start_time'] = datetime.now().isoformat()
 
     def clear(self, finished):
         self.runner.release()
+        self.stats['end_time'] = datetime.now().isoformat()
+        self.stats['finish_reason'] = 'stopped'
         if finished:
+            self.stats['finish_reason'] = 'finished'
             self.url_queue.clear()
             self.url_set.clear()
 
@@ -106,6 +112,8 @@ class Crawler():
                 crawl.inc_count()
                 try:
                     response = request.send()
+                    crawl.stats['pages_crawled'] += 1
+                    crawl.stats['request_bytes'] += len(response)
                     try:
                         callback = getattr(crawl.spider, request.callback)
                         if request.meta:
