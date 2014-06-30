@@ -104,7 +104,7 @@ class Dict(object):
 
     def __getitem__(self, key):
         name = self.pattern.replace('*', key)
-        if self.__db.type(name) != 'string':
+        if self.__db.type(name) not in ['string', 'none']:
             return None
         value = self.__db.get(name)
         if value is None:

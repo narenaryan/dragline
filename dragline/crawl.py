@@ -40,14 +40,15 @@ class Crawl:
         if request.callback is None:
             request.callback = "parse"
         self.insert(request)
+        self.stats['status'] = "running"
         self.stats['start_time'] = datetime.now().isoformat()
 
     def clear(self, finished):
         self.runner.release()
         self.stats['end_time'] = datetime.now().isoformat()
-        self.stats['finish_reason'] = 'stopped'
+        self.stats['status'] = 'stopped'
         if finished:
-            self.stats['finish_reason'] = 'finished'
+            self.stats['status'] = 'finished'
             self.url_queue.clear()
             self.url_set.clear()
 
