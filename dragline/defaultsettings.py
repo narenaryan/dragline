@@ -64,6 +64,7 @@ class LogSettings:
 
 
 class CrawlSettings(Settings):
+    TIME_ZONE = 'UTC'
     RESUME = False
     MAX_RETRY = 3
     REDIS_URL = 'localhost'

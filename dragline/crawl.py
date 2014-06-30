@@ -7,6 +7,7 @@ from gevent.coros import BoundedSemaphore
 from http import Request, RequestError
 from uuid import uuid4
 from datetime import datetime
+from pytz import timezone
 
 
 class Crawl:
@@ -32,6 +33,10 @@ class Crawl:
         self.spider = spider
         self.start()
 
+    def __current_time(self):
+        tz = timezone(self.settings.TIME_ZONE)
+        return datetime.now(tz).isoformat()
+
     def start(self):
         if not self.settings.RESUME and self.completed():
             self.url_queue.clear()
@@ -41,11 +46,11 @@ class Crawl:
             request.callback = "parse"
         self.insert(request)
         self.stats['status'] = "running"
-        self.stats['start_time'] = datetime.now().isoformat()
+        self.stats['start_time'] = self.__current_time()
 
     def clear(self, finished):
         self.runner.release()
-        self.stats['end_time'] = datetime.now().isoformat()
+        self.stats['end_time'] = self.__current_time()
         self.stats['status'] = 'stopped'
         if finished:
             self.stats['status'] = 'finished'
