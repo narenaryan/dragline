@@ -24,7 +24,7 @@ class RequestSettings(Settings):
 
 class LogSettings:
     version = 1
-    disable_existing_loggers = True
+    disable_existing_loggers = False
     formatters = {
         'standard': {
             'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
@@ -40,8 +40,8 @@ class LogSettings:
     loggers = {
         '': {
             'handlers': ['default'],
-            'level': 'DEBUG',
-            'propagate': True
+            'level': 'INFO',
+            'propagate': False
         },
         'dragline': {
             'handlers': ['default'],

@@ -2,9 +2,9 @@ import json
 import re
 from defaultsettings import CrawlSettings, RequestSettings
 from defaultsettings import SpiderSettings, LogSettings
-import redisds
+from . import redisds
 from gevent.coros import BoundedSemaphore
-from http import Request, RequestError
+from .http import Request, RequestError
 from uuid import uuid4
 from datetime import datetime
 from pytz import timezone
@@ -41,6 +41,8 @@ class Crawl:
         if not self.settings.RESUME and self.completed():
             self.url_queue.clear()
             self.url_set.clear()
+        if self.url_queue.empty():
+            self.stats.clear()
         request = self.spider._start
         if request.callback is None:
             request.callback = "parse"
@@ -56,6 +58,7 @@ class Crawl:
             self.stats['status'] = 'finished'
             self.url_queue.clear()
             self.url_set.clear()
+        self.logger.info("%s", str(dict(self.stats)))
 
     def completed(self):
         return len(self.runners) == 0
@@ -101,20 +104,21 @@ class Crawler():
         Request.settings = RequestSettings(get('REQUEST'))
         spider_settings = SpiderSettings(get('SPIDER'))
         spider = spider_class(spider_settings)
-        Crawler.log = LogSettings(get('LOGFORMATTERS'), get('LOGHANDLERS'),
-                                  get('LOGGERS'))
-        spider.logger = Crawler.log.getLogger(spider._name)
+        log = LogSettings(get('LOGFORMATTERS'), get('LOGHANDLERS'),
+                          get('LOGGERS'))
+        Crawl.logger = log.getLogger("dragline")
+        spider.logger = log.getLogger(spider._name)
+        Crawler.logger = log.getLogger(spider._name)
         Crawler.crawl = Crawl(spider)
 
     def process_url(self):
         crawl = Crawler.crawl
-        logger = Crawler.log.getLogger("dragline")
         request = Request(None)
         while True:
             args = crawl.url_queue.get(timeout=2)
             if args:
                 request._set_state(args)
-                logger.info("Processing %s", request)
+                self.logger.info("Processing %s", request)
                 crawl.inc_count()
                 try:
                     response = request.send()
@@ -122,14 +126,11 @@ class Crawler():
                     crawl.stats['request_bytes'] += len(response)
                     try:
                         callback = getattr(crawl.spider, request.callback)
-                        if request.meta:
-                            requests = callback(response, request.meta)
-                        else:
-                            requests = callback(response)
+                        requests = callback(response)
                     except KeyboardInterrupt:
                         raise KeyboardInterrupt
                     except:
-                        logger.exception("Failed to execute callback")
+                        self.logger.exception("Failed to execute callback")
                         requests = None
                     if requests:
                         for i in requests:
@@ -137,20 +138,20 @@ class Crawler():
                 except RequestError as e:
                     request.retry += 1
                     if request.retry >= crawl.settings.MAX_RETRY:
-                        logger.warning("Rejecting %s", request)
+                        self.logger.warning("Rejecting %s", request)
                     else:
-                        logger.debug("Retrying %s", request)
+                        self.logger.debug("Retrying %s", request)
                         crawl.insert(request, False)
                 # except Exception as e:
-                #    logger.exception('Failed to open the url %s', request)
+                #    self.logger.exception('Failed to open the url %s', request)
                 except KeyboardInterrupt:
                     crawl.insert(request, False)
                     raise KeyboardInterrupt
                 else:
-                    logger.info("Finished processing %s", request)
+                    self.logger.info("Finished processing %s", request)
                 finally:
                     crawl.decr_count()
             else:
                 if crawl.completed():
                     break
-                logger.debug("Waiting for %s", crawl.running_count)
+                self.logger.debug("Waiting for %s", crawl.running_count)
