@@ -121,7 +121,9 @@ class Dict(object):
         return ((key, self[key]) for key in keys)
 
     def clear(self):
-        return self.__db.delete(*self.__db.keys(self.pattern))
+        val = self.__db.keys(self.pattern)
+        if val:
+            return self.__db.delete(*val)
 
 
 class Set(object):
