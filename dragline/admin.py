@@ -10,6 +10,7 @@ from runner import load_modules
 import argparse
 import zipfile
 import pkgutil
+from defaultsettings import SpiderSettings
 
 config_file = os.path.expanduser('~/.dragline')
 
@@ -41,9 +42,14 @@ def upload(url, username, password, foldername, spider_website=None):
 
     if not inspect.isclass(spider):
         return "Spider class not found"
-
+    def get(value, default={}):
+        try:
+            return getattr(settings, value)
+        except AttributeError:
+            return default
     # create a spider object and check whether it contain required attributes
-    spider_object = spider(None)
+    settings = SpiderSettings(get('SPIDER'))
+    spider_object = spider(settings)
 
     try:
         if spider_object._name and spider_object._start and spider_object._allowed_urls_regex:
