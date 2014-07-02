@@ -274,6 +274,7 @@ class WorkerThread(threading.Thread):
         self._running = False
         self.__target = target
         self.__sleep = sleep
+        self.setDaemon(True)
         self.start()
 
     def run(self):
