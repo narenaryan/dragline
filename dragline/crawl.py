@@ -1,5 +1,9 @@
-import json
+try:
+    from cPickle import Pickler, Unpickler
+except:
+    from pickle import Pickler, Unpickler
 import re
+from copy import copy
 from defaultsettings import CrawlSettings, RequestSettings
 from defaultsettings import SpiderSettings, LogSettings
 from . import redisds
@@ -8,6 +12,22 @@ from .http import Request, RequestError
 from uuid import uuid4
 from datetime import datetime
 from pytz import timezone
+
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+
+
+class Pickle():
+    def dumps(self, obj, protocol=2):
+        file = StringIO()
+        Pickler(file, protocol).dump(obj)
+        return file.getvalue()
+
+    def loads(self, str):
+        file = StringIO(str)
+        return Unpickler(file).load()
 
 
 class Crawl:
@@ -22,7 +42,7 @@ class Crawl:
         else:
             redis_args['namespace'] = spider._name
         self.url_set = redisds.Set('urlset', **redis_args)
-        self.url_queue = redisds.Queue('urlqueue', serializer=json,
+        self.url_queue = redisds.Queue('urlqueue', serializer=Pickle(),
                                        **redis_args)
         self.runner = redisds.Lock("runner:%s" % uuid4().hex, **redis_args)
         self.runners = redisds.Dict("runner:*", **redis_args)
@@ -45,7 +65,7 @@ class Crawl:
             self.stats.clear()
         request = self.spider._start
         if request.callback is None:
-            request.callback = "parse"
+            request.callback = self.spider.parse
         self.insert(request)
         self.stats['status'] = "running"
         self.stats['start_time'] = self.__current_time()
@@ -87,7 +107,7 @@ class Crawl:
             elif reqhash in self.url_set:
                 return
         self.url_set.add(reqhash)
-        self.url_queue.put(request.__dict__)
+        self.url_queue.put(request)
         del request
 
 
@@ -113,11 +133,9 @@ class Crawler():
 
     def process_url(self):
         crawl = Crawler.crawl
-        request = Request(None)
         while True:
-            args = crawl.url_queue.get(timeout=2)
-            if args:
-                request._set_state(args)
+            request = crawl.url_queue.get(timeout=2)
+            if request:
                 self.logger.info("Processing %s", request)
                 crawl.inc_count()
                 try:
@@ -125,8 +143,7 @@ class Crawler():
                     crawl.stats['pages_crawled'] += 1
                     crawl.stats['request_bytes'] += len(response)
                     try:
-                        callback = getattr(crawl.spider, request.callback)
-                        requests = callback(response)
+                        requests = request.callback(response)
                     except KeyboardInterrupt:
                         raise KeyboardInterrupt
                     except:

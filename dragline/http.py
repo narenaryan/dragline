@@ -47,7 +47,7 @@ class Request:
         if meta:
             self.meta = meta
         if form_data:
-            self.form_data = form_data
+            self.form_data = {str(k): str(v) for k, v in form_data.items()}
         if headers:
             self.headers = headers
 
@@ -56,6 +56,17 @@ class Request:
 
     def __str__(self):
         return self.get_unique_id(False)
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        if self.callback:
+            d['callback'] = self.callback.im_self, self.callback.__name__
+        return d
+
+    def __setstate__(self, d):
+        if 'callback' in d:
+            d['callback'] = getattr(*d['callback'])
+        self.__dict__ = d
 
     def __usha1(self, x):
         """sha1 with unicode support"""
