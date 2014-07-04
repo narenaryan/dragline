@@ -20,6 +20,7 @@ except ImportError:
 
 
 class Pickle():
+
     def dumps(self, obj, protocol=HIGHEST_PROTOCOL):
         file = StringIO()
         Pickler(file, protocol).dump(obj)
@@ -40,7 +41,7 @@ class Crawl:
         if hasattr(self.settings, 'NAMESPACE'):
             redis_args['namespace'] = self.settings.NAMESPACE
         else:
-            redis_args['namespace'] = spider._name
+            redis_args['namespace'] = spider.name
         self.url_set = redisds.Set('urlset', **redis_args)
         self.url_queue = redisds.Queue('urlqueue', serializer=Pickle(),
                                        **redis_args)
@@ -49,11 +50,17 @@ class Crawl:
         self.stats = redisds.Dict("stats:*", **redis_args)
         self.lock = BoundedSemaphore(1)
         self.running_count = 0
-        self.allowed_urls_regex = re.compile(spider._allowed_urls_regex)
+        self.allowed_urls_regex = self.get_regex(spider.allowed_domains)
         self.spider = spider
         self.start()
 
-    def __current_time(self):
+    def get_regex(self, domains):
+        domain_regex = r'(%s)' % ')|('.join(domains)
+        url_regex = r'^https?://%s(?:/?|[/?]\S+)$' % domain_regex
+        regex = re.compile(url_regex, re.IGNORECASE)
+        return regex
+
+    def current_time(self):
         tz = timezone(self.settings.TIME_ZONE)
         return datetime.now(tz).isoformat()
 
@@ -63,16 +70,17 @@ class Crawl:
             self.url_set.clear()
         if self.url_queue.empty():
             self.stats.clear()
-        request = self.spider._start
-        if request.callback is None:
-            request.callback = self.spider.parse
+        requests = list(self.spider.start)
+        for request in requests:
+            if request.callback is None:
+                request.callback = self.spider.parse
         self.insert(request)
         self.stats['status'] = "running"
-        self.stats['start_time'] = self.__current_time()
+        self.stats['start_time'] = self.current_time()
 
     def clear(self, finished):
         self.runner.release()
-        self.stats['end_time'] = self.__current_time()
+        self.stats['end_time'] = self.current_time()
         self.stats['status'] = 'stopped'
         if finished:
             self.stats['status'] = 'finished'
@@ -127,8 +135,8 @@ class Crawler():
         log = LogSettings(get('LOGFORMATTERS'), get('LOGHANDLERS'),
                           get('LOGGERS'))
         Crawl.logger = log.getLogger("dragline")
-        spider.logger = log.getLogger(spider._name)
-        Crawler.logger = log.getLogger(spider._name)
+        spider.logger = log.getLogger(spider.name)
+        Crawler.logger = log.getLogger(spider.name)
         Crawler.crawl = Crawl(spider)
 
     def process_url(self):
@@ -160,7 +168,7 @@ class Crawler():
                         self.logger.debug("Retrying %s", request)
                         crawl.insert(request, False)
                 # except Exception as e:
-                #    self.logger.exception('Failed to open the url %s', request)
+                # self.logger.exception('Failed to open the url %s', request)
                 except KeyboardInterrupt:
                     crawl.insert(request, False)
                     raise KeyboardInterrupt
