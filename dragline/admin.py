@@ -11,7 +11,7 @@ import argparse
 import zipfile
 import pkgutil
 from defaultsettings import SpiderSettings
-
+from getpass import getpass
 config_file = os.path.expanduser('~/.dragline')
 
 
@@ -52,8 +52,8 @@ def upload(url, username, password, foldername, spider_website=None):
     spider_object = spider(settings)
 
     try:
-        if spider_object._name and spider_object._start and spider_object._allowed_urls_regex:
-            spider_name = spider_object._name
+        if spider_object.name and spider_object.start and spider_object.allowed_domains:
+            spider_name = spider_object.name
         else:
             return "required attributes not found in spider"
 
@@ -106,7 +106,7 @@ def generate(spider_dir):
 def add_server(serv_name):
     url = raw_input("Enter URL:")
     usr_name = raw_input("Enter Username:")
-    pwd = raw_input("Enter the password:")
+    pwd = getpass("Enter the password:")
     parser = ConfigParser.SafeConfigParser()
     parser.read(config_file)
     if not parser.has_section(serv_name):
