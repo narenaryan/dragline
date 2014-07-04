@@ -1,7 +1,7 @@
 try:
-    from cPickle import Pickler, Unpickler
+    from cPickle import Pickler, Unpickler, HIGHEST_PROTOCOL
 except:
-    from pickle import Pickler, Unpickler
+    from pickle import Pickler, Unpickler, HIGHEST_PROTOCOL
 import re
 from copy import copy
 from defaultsettings import CrawlSettings, RequestSettings
@@ -20,7 +20,7 @@ except ImportError:
 
 
 class Pickle():
-    def dumps(self, obj, protocol=2):
+    def dumps(self, obj, protocol=HIGHEST_PROTOCOL):
         file = StringIO()
         Pickler(file, protocol).dump(obj)
         return file.getvalue()

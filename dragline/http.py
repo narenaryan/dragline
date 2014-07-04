@@ -4,6 +4,7 @@ from hashlib import sha1
 import time
 import httplib2
 from defaultsettings import RequestSettings
+import types
 
 
 class RequestError(Exception):
@@ -59,12 +60,12 @@ class Request:
 
     def __getstate__(self):
         d = dict(self.__dict__)
-        if self.callback:
+        if isinstance(self.callback, types.MethodType):
             d['callback'] = self.callback.im_self, self.callback.__name__
         return d
 
     def __setstate__(self, d):
-        if 'callback' in d:
+        if 'callback' in d and isinstance(d['callback'], tuple):
             d['callback'] = getattr(*d['callback'])
         self.__dict__ = d
 
