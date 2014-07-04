@@ -55,7 +55,11 @@ class Crawl:
         self.start()
 
     def get_regex(self, domains):
-        domain_regex = r'(%s)' % ')|('.join(domains)
+        default = (r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # domain...
+                   r'localhost|'  # localhost...
+                   r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # ...or ip
+                   r'(?::\d+)?')
+        domain_regex = r'(%s)' % '|'.join(domains) if len(domains) else default
         url_regex = r'^https?://%s(?:/?|[/?]\S+)$' % domain_regex
         regex = re.compile(url_regex, re.IGNORECASE)
         return regex
