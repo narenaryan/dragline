@@ -70,11 +70,16 @@ class Crawl:
             self.url_set.clear()
         if self.url_queue.empty():
             self.stats.clear()
-        requests = list(self.spider.start)
+        if isinstance(self.spider.start, list):
+            requests = self.spider.start
+        else:
+            requests = [self.spider.start]
         for request in requests:
+            if isinstance(request, str):
+                request = Request(request)
             if request.callback is None:
                 request.callback = self.spider.parse
-        self.insert(request)
+            self.insert(request)
         self.stats['status'] = "running"
         self.stats['start_time'] = self.current_time()
 
