@@ -5,6 +5,7 @@ import time
 import httplib2
 from defaultsettings import RequestSettings
 import types
+import operator
 
 
 class RequestError(Exception):
@@ -48,12 +49,10 @@ class Request:
         if meta:
             self.meta = meta
         if form_data:
-            self.form_data = {str(k): str(v) for k, v in form_data.items()}
+            self.form_data = {str(k): str(v)
+                              for k, v in dict(form_data).items()}
         if headers:
             self.headers = headers
-
-    def _set_state(self, state):
-        self.__dict__ = state
 
     def __str__(self):
         return self.get_unique_id(False)
@@ -111,9 +110,8 @@ class Request:
     def get_unique_id(self, hashing=True):
         request = self.method + ":" + self.url
         if self.form_data:
-            request += ":" + urlencode(
-                {i: j for i, j in sorted(self.form_data.items(),
-                                         key=lambda t: t[0])})
+            request += ":" + urlencode(sorted(self.form_data.items(),
+                                              key=operator.itemgetter(1)))
         if hashing:
             return self.__usha1(request)
         else:
