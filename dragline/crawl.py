@@ -82,7 +82,7 @@ class Crawl:
             if isinstance(request, str):
                 request = Request(request)
             if request.callback is None:
-                request.callback = self.spider.parse
+                request.callback = "parse"
             self.insert(request)
         self.stats['status'] = "running"
         self.stats['start_time'] = self.current_time()
@@ -160,7 +160,8 @@ class Crawler():
                     crawl.stats['pages_crawled'] += 1
                     crawl.stats['request_bytes'] += len(response)
                     try:
-                        requests = request.callback(response)
+                        callback = getattr(crawl.spider, request.callback)
+                        requests = callback(response)
                     except KeyboardInterrupt:
                         raise KeyboardInterrupt
                     except:

@@ -57,17 +57,6 @@ class Request:
     def __str__(self):
         return self.get_unique_id(False)
 
-    def __getstate__(self):
-        d = dict(self.__dict__)
-        if isinstance(self.callback, types.MethodType):
-            d['callback'] = self.callback.im_self, self.callback.__name__
-        return d
-
-    def __setstate__(self, d):
-        if 'callback' in d and isinstance(d['callback'], tuple):
-            d['callback'] = getattr(*d['callback'])
-        self.__dict__ = d
-
     def __usha1(self, x):
         """sha1 with unicode support"""
         if isinstance(x, unicode):
