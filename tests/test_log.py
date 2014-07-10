@@ -7,7 +7,10 @@ class LogTest(unittest.TestCase):
     def test_loggers(self):
         log = LogSettings(loggers={'test': {'handlers': ['info_file']}})
         testlogger = log.getLogger('test')
-        self.assertEqual(len(testlogger.handlers), 0)
+        self.assertEqual(len(testlogger.handlers), 1)
+
+    def test_handlers(self):
+        pass
 
 
 if __name__ == "__main__":
