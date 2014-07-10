@@ -42,6 +42,7 @@ def upload(url, username, password, foldername, spider_website=None):
 
     if not inspect.isclass(spider):
         return "Spider class not found"
+
     def get(value, default={}):
         try:
             return getattr(settings, value)
@@ -82,8 +83,7 @@ def deploy(serv_name, spider_dir):
     try:
         args = dict(parser.items(serv_name))
     except ConfigParser.NoSectionError:
-        print "first add server using: dragline-admin addserver %s" % serv_name
-        return
+        add_server(serv_name)
     args['foldername'] = spider_dir
     print upload(**args)
 

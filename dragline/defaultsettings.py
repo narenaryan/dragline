@@ -84,7 +84,6 @@ class LogSettings:
             self.loggers[name] = self.loggers['']
         logging.config.dictConfig(self.conf())
         logger = logging.getLogger(name=name)
-        print name, logger
         return logger
 
 
