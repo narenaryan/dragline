@@ -32,5 +32,5 @@ class HtmlParserTest(unittest.TestCase):
     def test_css(self):
         self.assertTrue(True)
 
-if __name__ == "main":
+if __name__ == "__main__":
     unittest.main()

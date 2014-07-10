@@ -91,7 +91,7 @@ class Request:
             end = time.time()
             if not headers.fromcache and self.settings.AUTOTHROTTLE:
                 self.updatedelay(end, start)
-                time.sleep(Request.settings.DELAY)
+                time.sleep(self.settings.DELAY)
         except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
             raise RequestError(e.message)
         return res

@@ -24,7 +24,7 @@ class RequestSettings(Settings):
 
 class LogSettings:
     version = 1
-    disable_existing_loggers = False
+    disable_existing_loggers = True
     formatters = {
         'standard': {
             'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
@@ -32,10 +32,22 @@ class LogSettings:
     }
     handlers = {
         'default': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'standard'
         },
+        'error_file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'formatter': 'standard',
+            'filename': 'error.log'
+        },
+        'info_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'formatter': 'standard',
+            'filename': 'info.log'
+        }
     }
     loggers = {
         '': {
@@ -51,16 +63,29 @@ class LogSettings:
     }
 
     def __init__(self, formatters={}, handlers={}, loggers={}):
-        self.formatters.update(formatters)
-        self.handlers.update(handlers)
-        self.loggers.update(loggers)
+        self.__update(self.formatters, formatters)
+        self.__update(self.handlers, handlers)
+        self.__update(self.loggers, loggers)
 
-    def getLogger(self, name=None):
+    def __update(self, current, new):
+        for k in new:
+            if k in current:
+                current[k].update(new[k])
+            else:
+                current[k] = new[k]
+
+    def conf(self):
         attrs = ['version', 'disable_existing_loggers', 'handlers', 'loggers',
                  'formatters']
-        conf = {attr: getattr(self, attr) for attr in attrs}
-        logging.config.dictConfig(conf)
-        return logging.getLogger(name=name)
+        return {attr: getattr(self, attr) for attr in attrs}
+
+    def getLogger(self, name=None):
+        if name not in self.loggers:
+            self.loggers[name] = self.loggers['']
+        logging.config.dictConfig(self.conf())
+        logger = logging.getLogger(name=name)
+        print name, logger
+        return logger
 
 
 class CrawlSettings(Settings):
