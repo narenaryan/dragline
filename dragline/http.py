@@ -4,6 +4,7 @@ from hashlib import sha1
 import time
 import httplib2
 from defaultsettings import RequestSettings
+from collections import defaultdict
 import types
 import operator
 
@@ -33,6 +34,7 @@ class Request:
     """
 
     settings = RequestSettings()
+    stats = defaultdict(int)
     method = "GET"
     form_data = None
     headers = {}
@@ -88,6 +90,8 @@ class Request:
             headers, content = http.request(
                 self.url, self.method, form_data, req_headers)
             res = Response(self.url, content, headers, self.meta)
+            self.stats['pages_crawled'] += 1
+            self.stats['request_bytes'] += len(res)
             end = time.time()
             if not headers.fromcache and self.settings.AUTOTHROTTLE:
                 self.updatedelay(end, start)

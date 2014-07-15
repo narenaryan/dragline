@@ -147,6 +147,7 @@ class Crawler():
         spider.logger = log.getLogger(spider.name)
         Crawler.logger = log.getLogger(spider.name)
         Crawler.crawl = Crawl(spider)
+        Request.stats = Crawler.crawl.stats
 
     def process_url(self):
         crawl = Crawler.crawl
@@ -157,8 +158,6 @@ class Crawler():
                 crawl.inc_count()
                 try:
                     response = request.send()
-                    crawl.stats['pages_crawled'] += 1
-                    crawl.stats['request_bytes'] += len(response)
                     try:
                         callback = getattr(crawl.spider, request.callback)
                         requests = callback(response)
