@@ -79,7 +79,7 @@ class LogSettings:
                  'formatters']
         return {attr: getattr(self, attr) for attr in attrs}
 
-    def getLogger(self, name=None):
+    def getLogger(self, name=''):
         if name not in self.loggers:
             self.loggers[name] = self.loggers['']
         logging.config.dictConfig(self.conf())
