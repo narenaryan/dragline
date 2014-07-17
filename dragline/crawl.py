@@ -89,12 +89,13 @@ class Crawl:
 
     def clear(self, finished):
         self.runner.release()
-        self.stats['end_time'] = self.current_time()
-        self.stats['status'] = 'stopped'
         if finished:
             self.stats['status'] = 'finished'
             self.url_queue.clear()
             self.url_set.clear()
+        elif self.completed():
+            self.stats['end_time'] = self.current_time()
+            self.stats['status'] = 'stopped'
         self.logger.info("%s", str(dict(self.stats)))
 
     def completed(self):
