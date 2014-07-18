@@ -31,10 +31,27 @@ class Pickle():
         return Unpickler(file).load()
 
 
-class Crawl:
+class Crawler:
     settings = CrawlSettings()
 
-    def __init__(self, spider):
+    def __init__(self, spider_class, settings):
+        def get(value, default={}):
+            try:
+                return getattr(settings, value)
+            except AttributeError:
+                return default
+        self.settings = CrawlSettings(get('CRAWL'))
+        Request.settings = RequestSettings(get('REQUEST'))
+        spider_settings = SpiderSettings(get('SPIDER'))
+        spider = spider_class(spider_settings)
+        log = LogSettings(get('LOGFORMATTERS'), get('LOGHANDLERS'),
+                          get('LOGGERS'))
+        spider.logger = log.getLogger(spider.name)
+        self.logger = log.getLogger(spider.name)
+        self.load(spider)
+        Request.stats = self.stats
+
+    def load(self, spider):
         redis_args = dict(host=self.settings.REDIS_URL,
                           port=self.settings.REDIS_PORT,
                           db=self.settings.REDIS_DB)
@@ -128,39 +145,16 @@ class Crawl:
         self.url_queue.put(request)
         del request
 
-
-class Crawler():
-
-    @classmethod
-    def load_spider(Crawler, spider_class, settings):
-        def get(value, default={}):
-            try:
-                return getattr(settings, value)
-            except AttributeError:
-                return default
-        Crawl.settings = CrawlSettings(get('CRAWL'))
-        Request.settings = RequestSettings(get('REQUEST'))
-        spider_settings = SpiderSettings(get('SPIDER'))
-        spider = spider_class(spider_settings)
-        log = LogSettings(get('LOGFORMATTERS'), get('LOGHANDLERS'),
-                          get('LOGGERS'))
-        Crawl.logger = log.getLogger("dragline")
-        spider.logger = log.getLogger(spider.name)
-        Crawler.logger = log.getLogger(spider.name)
-        Crawler.crawl = Crawl(spider)
-        Request.stats = Crawler.crawl.stats
-
     def process_url(self):
-        crawl = Crawler.crawl
         while True:
-            request = crawl.url_queue.get(timeout=2)
+            request = self.url_queue.get(timeout=2)
             if request:
                 self.logger.info("Processing %s", request)
-                crawl.inc_count()
+                self.inc_count()
                 try:
                     response = request.send()
                     try:
-                        callback = getattr(crawl.spider, request.callback)
+                        callback = getattr(self.spider, request.callback)
                         requests = callback(response)
                     except KeyboardInterrupt:
                         raise KeyboardInterrupt
@@ -169,24 +163,24 @@ class Crawler():
                         requests = None
                     if requests:
                         for i in requests:
-                            crawl.insert(i)
+                            self.insert(i)
                 except RequestError as e:
                     request.retry += 1
-                    if request.retry >= crawl.settings.MAX_RETRY:
+                    if request.retry >= self.settings.MAX_RETRY:
                         self.logger.warning("Rejecting %s", request)
                     else:
                         self.logger.debug("Retrying %s", request)
-                        crawl.insert(request, False)
+                        self.insert(request, False)
                 # except Exception as e:
                 # self.logger.exception('Failed to open the url %s', request)
                 except KeyboardInterrupt:
-                    crawl.insert(request, False)
+                    self.insert(request, False)
                     raise KeyboardInterrupt
                 else:
                     self.logger.info("Finished processing %s", request)
                 finally:
-                    crawl.decr_count()
+                    self.decr_count()
             else:
-                if crawl.completed():
+                if self.completed():
                     break
-                self.logger.debug("Waiting for %s", crawl.running_count)
+                self.logger.debug("Waiting for %s", self.running_count)

@@ -30,16 +30,15 @@ def load_modules(path, spiderfile="main", settingsfile="settings"):
 
 def main(spider_module, settings_module):
     spider = spider_module.Spider
-    Crawler.load_spider(spider, settings_module)
-    crawlers = [Crawler() for i in xrange(5)]
+    crawler = Crawler(spider, settings_module)
     try:
-        joinall([spawn(crawler.process_url) for crawler in crawlers])
+        joinall([spawn(crawler.process_url) for i in xrange(5)])
     except KeyboardInterrupt:
-        Crawler.crawl.clear(False)
+        crawler.clear(False)
     except:
         logger.exception("Unable to complete")
     else:
-        Crawler.crawl.clear(True)
+        crawler.clear(True)
         logger.info("Crawling completed")
 
 
