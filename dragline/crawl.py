@@ -9,6 +9,7 @@ from defaultsettings import CrawlSettings, RequestSettings
 from defaultsettings import SpiderSettings, LogSettings
 from . import redisds
 from gevent.coros import BoundedSemaphore
+from gevent import Timeout
 from .http import Request, RequestError
 from uuid import uuid4
 from datetime import datetime
@@ -155,7 +156,8 @@ class Crawler:
                 self.logger.info("Processing %s", request)
                 self.inc_count()
                 try:
-                    response = request.send()
+                    with Timeout(request.settings.DELAY + 5, RequestError('timeout')):
+                        response = request.send()
                     try:
                         callback = getattr(self.spider, request.callback)
                         requests = callback(response)
@@ -186,4 +188,4 @@ class Crawler:
             else:
                 if self.completed():
                     break
-                self.logger.debug("Waiting for %s", self.running_count)
+                self.logger.info("Waiting for %s", self.running_count)
