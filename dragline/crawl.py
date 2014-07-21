@@ -1,3 +1,4 @@
+from dragline import __version__
 try:
     from cPickle import Pickler, Unpickler, HIGHEST_PROTOCOL
 except:
@@ -113,7 +114,9 @@ class Crawler:
         elif self.completed():
             self.stats['end_time'] = self.current_time()
             self.stats['status'] = 'stopped'
-        self.logger.info("%s", str(dict(self.stats)))
+        stats = dict(self.stats)
+        stats['runners'] = len(self.runners)
+        self.logger.info("%s", str(stats))
 
     def completed(self):
         return len(self.runners) == 0

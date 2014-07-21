@@ -1,8 +1,6 @@
 from dragline import __version__
 
-from gevent import monkey, spawn, joinall
-monkey.patch_all()
-
+from gevent import spawn, joinall
 import sys
 import argparse
 import os

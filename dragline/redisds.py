@@ -1,3 +1,4 @@
+from dragline import __version__
 import redis
 import time
 import uuid

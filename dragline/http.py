@@ -1,3 +1,4 @@
+from dragline import __version__
 from urllib import urlencode
 import socket
 from hashlib import sha1
