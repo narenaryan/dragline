@@ -1,6 +1,6 @@
 from dragline import __version__
-
-from gevent import spawn, joinall
+from gevent import spawn, joinall, monkey
+monkey.patch_all()
 import sys
 import argparse
 import os
@@ -26,9 +26,8 @@ def load_modules(path, spiderfile="main", settingsfile="settings"):
         raise ImportError
 
 
-def main(spider_module, settings_module):
-    spider = spider_module.Spider
-    crawler = Crawler(spider, settings_module)
+def main(spider_class, settings_module):
+    crawler = Crawler(spider_class, settings_module)
     try:
         joinall([spawn(crawler.process_url) for i in xrange(5)])
     except KeyboardInterrupt:
@@ -55,7 +54,7 @@ def run():
             settings_module.CRAWL['RESUME'] = True
         except AttributeError:
             settings_module.CRAWL = {'RESUME': True}
-    main(spider_module, settings_module)
+    main(spider_module.Spider, settings_module)
 
 if __name__ == "__main__":
     run()
