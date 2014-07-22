@@ -4,12 +4,11 @@ try:
 except:
     from pickle import Pickler, Unpickler, HIGHEST_PROTOCOL
 import re
-from copy import copy
+
 from defaultsettings import CrawlSettings, RequestSettings
 from defaultsettings import SpiderSettings, LogSettings
 from . import redisds
 from gevent.coros import BoundedSemaphore
-from gevent import Timeout
 from .http import Request, RequestError
 from uuid import uuid4
 from datetime import datetime
@@ -156,8 +155,7 @@ class Crawler:
                 self.logger.info("Processing %s", request)
                 self.inc_count()
                 try:
-                    with Timeout(request.settings.DELAY + 5, RequestError('timeout')):
-                        response = request.send()
+                    response = request.send()
                     try:
                         callback = getattr(self.spider, request.callback)
                         requests = callback(response)

@@ -10,6 +10,9 @@ import types
 import operator
 
 
+socket.setdefaulttimeout(5)
+
+
 class RequestError(Exception):
 
     def __init__(self, value):
