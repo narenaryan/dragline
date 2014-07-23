@@ -290,6 +290,6 @@ class WorkerThread(threading.Thread):
         self.join(timeout=0)
 
 
-class LockTimeout(BaseException):
+class LockTimeout(Exception):
 
     """Raised in the event a timeout occurs while waiting for a lock"""
