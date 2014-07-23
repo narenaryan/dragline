@@ -4,7 +4,6 @@ try:
 except:
     from pickle import Pickler, Unpickler, HIGHEST_PROTOCOL
 import re
-
 from defaultsettings import CrawlSettings, RequestSettings
 from defaultsettings import SpiderSettings, LogSettings
 from . import redisds
