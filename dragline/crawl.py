@@ -12,7 +12,7 @@ from .http import Request, RequestError
 from uuid import uuid4
 from datetime import datetime
 from pytz import timezone
-
+import logging
 try:
     from cStringIO import StringIO
 except ImportError:
@@ -46,8 +46,13 @@ class Crawler:
         spider = spider_class(spider_settings)
         log = LogSettings(get('LOGFORMATTERS'), get('LOGHANDLERS'),
                           get('LOGGERS'))
-        spider.logger = log.getLogger(spider.name)
-        self.logger = log.getLogger(spider.name)
+        if hasattr(self.settings, 'NAMESPACE'):
+            logger = log.getLogger(self.settings.NAMESPACE)
+            logger = logging.LoggerAdapter(logger, {"spider_name": spider.name})
+        else:
+            logger = log.getLogger(spider.name)
+        spider.logger = logger
+        self.logger = logger
         self.load(spider)
         Request.stats = self.stats
 
