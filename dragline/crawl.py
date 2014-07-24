@@ -47,7 +47,7 @@ class Crawler:
         log = LogSettings(get('LOGFORMATTERS'), get('LOGHANDLERS'),
                           get('LOGGERS'))
         if hasattr(self.settings, 'NAMESPACE'):
-            logger = log.getLogger(self.settings.NAMESPACE)
+            logger = log.getLogger(str(self.settings.NAMESPACE))
             logger = logging.LoggerAdapter(logger, {"spider_name": spider.name})
         else:
             logger = log.getLogger(spider.name)
