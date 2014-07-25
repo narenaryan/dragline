@@ -163,14 +163,13 @@ class Crawler:
                     try:
                         callback = getattr(self.spider, request.callback)
                         requests = callback(response)
+                        if requests:
+                            for i in requests:
+                                self.insert(i)
                     except KeyboardInterrupt:
                         raise KeyboardInterrupt
                     except:
                         self.logger.exception("Failed to execute callback")
-                        requests = None
-                    if requests:
-                        for i in requests:
-                            self.insert(i)
                 except RequestError as e:
                     request.retry += 1
                     if request.retry >= self.settings.MAX_RETRY:
