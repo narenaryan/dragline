@@ -189,4 +189,4 @@ class Crawler:
             else:
                 if self.completed():
                     break
-                self.logger.info("Waiting for %s", self.running_count)
+                self.logger.debug("No url to process, active threads: %s", self.running_count)
