@@ -8,9 +8,10 @@ from defaultsettings import RequestSettings
 from collections import defaultdict
 import operator
 from ssl import SSLError
-
+import socks
+from random import randint
 socket.setdefaulttimeout(5)
-
+ips = [("83.167.67.34",8080),("83.167.67.34",8080),("212.247.140.71",3128),("5.11.164.157",8080)]
 
 class RequestError(Exception):
 
@@ -87,9 +88,17 @@ class Request:
         try:
             start = time.time()
             timeout = max(self.settings.DELAY, self.settings.TIMEOUT)
-            http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout)
+            number = randint(0,4)
+            if number == 4:
+                http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout)
+            else:
+                http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout,proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, ips[number][0],ips[number][1]))
             req_headers = self.settings.HEADERS
             req_headers.update(self.headers)
+
+
+
+
             headers, content = http.request(
                 self.url, self.method, form_data, req_headers)
             res = Response(self.url, content, headers, self.meta)

@@ -127,9 +127,10 @@ class Crawler:
 
     def inc_count(self):
         self.lock.acquire()
-        self.logger.info("Starting spider... ")
+
         if self.running_count == 0:
             self.runner.acquire()
+            self.logger.info("Starting spider... ")
         self.running_count += 1
         self.lock.release()
 
@@ -158,7 +159,7 @@ class Crawler:
         while True:
             request = self.url_queue.get(timeout=2)
             if request:
-                self.logger.debug("Processing %s", request)
+                self.logger.info("Processing %s", request)
                 self.inc_count()
                 try:
                     response = request.send()
@@ -171,7 +172,7 @@ class Crawler:
                     except KeyboardInterrupt:
                         raise KeyboardInterrupt
                     except:
-                        self.logger.exception("Failed to execute callback")
+                        self.logger.exception("Failed to execute callback on ")
                 except RequestError as e:
                     request.retry += 1
                     if request.retry >= self.settings.MAX_RETRY:
@@ -185,7 +186,7 @@ class Crawler:
                     self.insert(request, False)
                     raise KeyboardInterrupt
                 else:
-                    self.logger.debug("Finished processing %s", request)
+                    self.logger.info("Finished processing %s", request)
                 finally:
                     self.decr_count()
             else:
