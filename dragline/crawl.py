@@ -153,10 +153,11 @@ class Crawler:
         del request
 
     def process_url(self):
+        self.logger.info("Starting Spider...")
         while True:
             request = self.url_queue.get(timeout=2)
             if request:
-                self.logger.info("Processing %s", request)
+                self.logger.debug("Processing %s", request)
                 self.inc_count()
                 try:
                     response = request.send()
@@ -183,7 +184,7 @@ class Crawler:
                     self.insert(request, False)
                     raise KeyboardInterrupt
                 else:
-                    self.logger.info("Finished processing %s", request)
+                    self.logger.debug("Finished processing %s", request)
                 finally:
                     self.decr_count()
             else:

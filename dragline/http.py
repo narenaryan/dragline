@@ -6,9 +6,8 @@ import time
 import httplib2
 from defaultsettings import RequestSettings
 from collections import defaultdict
-import types
 import operator
-
+from ssl import SSLError
 
 socket.setdefaulttimeout(5)
 
@@ -100,7 +99,8 @@ class Request:
             if not headers.fromcache and self.settings.AUTOTHROTTLE:
                 self.updatedelay(end, start)
                 time.sleep(self.settings.DELAY)
-        except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror) as e:
+
+        except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror, SSLError) as e:
             raise RequestError(e.message)
         return res
 
