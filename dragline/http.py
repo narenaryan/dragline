@@ -11,8 +11,7 @@ from ssl import SSLError
 import socks
 from random import randint
 socket.setdefaulttimeout(5)
-ips = [("83.167.67.34",8080),("83.167.67.34",8080),("212.247.140.71",3128),("5.11.164.157",8080)]
-
+ips = ["us-il.proxymesh.com","us.proxymesh.com","open.proxymesh.com"]
 class RequestError(Exception):
 
     def __init__(self, value):
@@ -88,11 +87,15 @@ class Request:
         try:
             start = time.time()
             timeout = max(self.settings.DELAY, self.settings.TIMEOUT)
-            number = randint(0,4)
-            if number == 4:
-                http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout)
+            number = randint(0,7)
+            if number == 7:
+                ip = ips[2]
             else:
-                http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout,proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, ips[number][0],ips[number][1]))
+              ip = ips[randint(0,1)]
+
+            print ip
+
+            http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout,proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP,ip,31280))
             req_headers = self.settings.HEADERS
             req_headers.update(self.headers)
 
@@ -105,11 +108,12 @@ class Request:
             self.stats['pages_crawled'] += 1
             self.stats['request_bytes'] += len(res)
             end = time.time()
+            print "cache bool is " + str(headers.fromcache)
             if not headers.fromcache and self.settings.AUTOTHROTTLE:
                 self.updatedelay(end, start)
                 time.sleep(self.settings.DELAY)
 
-        except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror, SSLError) as e:
+        except Exception as e:
             raise RequestError(e.message)
         return res
 
