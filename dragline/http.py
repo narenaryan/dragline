@@ -11,7 +11,7 @@ from ssl import SSLError
 import socks
 from random import randint
 socket.setdefaulttimeout(5)
-ips = ["us-il.proxymesh.com","us.proxymesh.com","open.proxymesh.com"]
+
 class RequestError(Exception):
 
     def __init__(self, value):
@@ -83,19 +83,28 @@ class Request:
         200
 
         """
+
         form_data = urlencode(self.form_data) if self.form_data else None
         try:
+
             start = time.time()
             timeout = max(self.settings.DELAY, self.settings.TIMEOUT)
-            number = randint(0,7)
-            if number == 7:
-                ip = ips[2]
+            # print self.settings.PROXIES
+            # print len(self.settings.PROXIES)
+            number = randint(0,len(self.settings.PROXIES))
+
+            if number == 0:
+                http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout)
+                print "no proxy"
             else:
-              ip = ips[randint(0,1)]
+              print "with proxy"
+              ip = self.settings.PROXIES[number][0]
+              proxy = self.settings.PROXIES[number][1]
+              http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout,proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP,ip, proxy))
+              print ip
 
-            print ip
 
-            http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout,proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP,ip,31280))
+
             req_headers = self.settings.HEADERS
             req_headers.update(self.headers)
 
