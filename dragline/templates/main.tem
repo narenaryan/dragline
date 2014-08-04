@@ -1,5 +1,10 @@
+#!/usr/bin/env python
+
+from dragline.runner import main
 from dragline.htmlparser import HtmlParser
 from dragline.http import Request
+import settings
+import db
 
 
 class Spider:
@@ -9,6 +14,15 @@ class Spider:
         self.start = "http://www.example.org"
         self.allowed_domains = []
         self.conf = conf
+        if conf.DB:
+            self.db = conf.DB
+        else:
+            self.db = db.DB()
 
-    def parse(self,response):
+    def parse(self, response):
         html = HtmlParser(response)
+        self.db.store_item('test', {'name': html.find('head/title').text})
+
+
+if __name__ == '__main__':
+    main(Spider, settings)
