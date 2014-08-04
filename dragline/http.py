@@ -7,10 +7,10 @@ import httplib2
 from defaultsettings import RequestSettings
 from collections import defaultdict
 import operator
-from ssl import SSLError
 import socks
 from random import randint
 socket.setdefaulttimeout(5)
+
 
 class RequestError(Exception):
 
@@ -90,43 +90,29 @@ class Request:
 
             start = time.time()
             timeout = max(self.settings.DELAY, self.settings.TIMEOUT)
-            # print self.settings.PROXIES
-            # print len(self.settings.PROXIES)
-            number = randint(0,len(self.settings.PROXIES))
+            number = randint(0, len(self.settings.PROXIES))
 
             if number == 0:
-                http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout)
-
+                http = httplib2.Http(
+                    cache=self.settings.CACHE, timeout=timeout)
             else:
-
-              ip = self.settings.PROXIES[number][0]
-              proxy = self.settings.PROXIES[number][1]
-              http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout,proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP,ip, proxy))
-
-
-
+                ip = self.settings.PROXIES[number][0]
+                proxy = self.settings.PROXIES[number][1]
+                http = httplib2.Http(
+                    cache=self.settings.CACHE, timeout=timeout,
+                    proxy_info=httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, ip, proxy))
 
             req_headers = self.settings.HEADERS
             if self.settings.COOKIE:
                 if Request.cookies:
-                    req_headers.update({'Cookie': Request.cookies })
+                    req_headers.update({'Cookie': Request.cookies})
             req_headers.update(self.headers)
-
-
-
-
-
-
-
 
             headers, content = http.request(
                 self.url, self.method, form_data, req_headers)
 
-
             if "set-cookie" in headers:
-
-                Request.cookies= headers['set-cookie']
-
+                Request.cookies = headers['set-cookie']
 
             res = Response(self.url, content, headers, self.meta)
             self.stats['pages_crawled'] += 1
@@ -137,10 +123,7 @@ class Request:
                 self.updatedelay(end, start)
                 time.sleep(self.settings.DELAY)
 
-
-
         except Exception as e:
-
             raise RequestError(e.message)
         return res
 
