@@ -127,7 +127,6 @@ class Crawler:
 
     def inc_count(self):
         self.lock.acquire()
-
         if self.running_count == 0:
             self.runner.acquire()
             self.logger.info("Starting spider... ")
@@ -155,7 +154,6 @@ class Crawler:
         del request
 
     def process_url(self):
-        #self.logger.info("Starting Spider...")
         while True:
             request = self.url_queue.get(timeout=2)
             if request:

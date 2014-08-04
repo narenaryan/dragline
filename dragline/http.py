@@ -3,14 +3,14 @@ from urllib import urlencode
 import socket
 from hashlib import sha1
 import time
-import httplib2
 from defaultsettings import RequestSettings
 from collections import defaultdict
 import operator
-from ssl import SSLError
-import socks
+from socks import PROXY_TYPE_HTTP
 from random import randint
+from httplib2 import Http, ProxyInfo
 socket.setdefaulttimeout(5)
+
 
 class RequestError(Exception):
 
@@ -91,25 +91,20 @@ class Request:
             timeout = max(self.settings.DELAY, self.settings.TIMEOUT)
             # print self.settings.PROXIES
             # print len(self.settings.PROXIES)
-            number = randint(0,len(self.settings.PROXIES))
+            number = randint(0, len(self.settings.PROXIES))
 
             if number == 0:
-                http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout)
-                print "no proxy"
+                http = Http(
+                    cache=self.settings.CACHE, timeout=timeout)
             else:
-              print "with proxy"
-              ip = self.settings.PROXIES[number][0]
-              proxy = self.settings.PROXIES[number][1]
-              http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout,proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP,ip, proxy))
-              print ip
-
-
+                ip = self.settings.PROXIES[number][0]
+                proxy = self.settings.PROXIES[number][1]
+                args = dict(cache=self.settings.CACHE, timeout=timeout)
+                args['proxy_info'] = ProxyInfo(PROXY_TYPE_HTTP, ip, proxy)
+                http = Http()
 
             req_headers = self.settings.HEADERS
             req_headers.update(self.headers)
-
-
-
 
             headers, content = http.request(
                 self.url, self.method, form_data, req_headers)
