@@ -21,6 +21,9 @@ class RequestSettings(Settings):
     DELAY = 0.5
     MIN_DELAY = 0.5
     MAX_DELAY = 60
+    PROXIES = []
+
+    COOKIE = True
 
 
 class LogSettings:
@@ -98,4 +101,5 @@ class CrawlSettings(Settings):
 
 
 class SpiderSettings(Settings):
-    pass
+    DB = None
+

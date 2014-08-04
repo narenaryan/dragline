@@ -11,7 +11,6 @@ from ssl import SSLError
 import socks
 from random import randint
 socket.setdefaulttimeout(5)
-ips = [("83.167.67.34",8080),("83.167.67.34",8080),("212.247.140.71",3128),("5.11.164.157",8080)]
 
 class RequestError(Exception):
 
@@ -45,6 +44,7 @@ class Request:
     callback = None
     meta = None
     retry = 0
+    cookies = None
 
     def __init__(self, url, method="GET", form_data=None, headers={}, callback=None, meta=None,):
         self.url = url
@@ -84,32 +84,63 @@ class Request:
         200
 
         """
+
         form_data = urlencode(self.form_data) if self.form_data else None
         try:
+
             start = time.time()
             timeout = max(self.settings.DELAY, self.settings.TIMEOUT)
-            number = randint(0,4)
-            if number == 4:
+            # print self.settings.PROXIES
+            # print len(self.settings.PROXIES)
+            number = randint(0,len(self.settings.PROXIES))
+
+            if number == 0:
                 http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout)
+
             else:
-                http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout,proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP, ips[number][0],ips[number][1]))
+
+              ip = self.settings.PROXIES[number][0]
+              proxy = self.settings.PROXIES[number][1]
+              http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout,proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP,ip, proxy))
+
+
+
+
             req_headers = self.settings.HEADERS
+            if self.settings.COOKIE:
+                if Request.cookies:
+                    req_headers.update({'Cookie': Request.cookies })
             req_headers.update(self.headers)
+
+
+
+
 
 
 
 
             headers, content = http.request(
                 self.url, self.method, form_data, req_headers)
+
+
+            if "set-cookie" in headers:
+
+                Request.cookies= headers['set-cookie']
+
+
             res = Response(self.url, content, headers, self.meta)
             self.stats['pages_crawled'] += 1
             self.stats['request_bytes'] += len(res)
             end = time.time()
+
             if not headers.fromcache and self.settings.AUTOTHROTTLE:
                 self.updatedelay(end, start)
                 time.sleep(self.settings.DELAY)
 
-        except (httplib2.ServerNotFoundError, socket.timeout, socket.gaierror, SSLError) as e:
+
+
+        except Exception as e:
+
             raise RequestError(e.message)
         return res
 
