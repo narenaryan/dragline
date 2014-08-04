@@ -24,6 +24,7 @@ class RequestSettings(Settings):
     PROXIES = []
 
     COOKIE = True
+    MAX_REDIRECTS = 1
 
 
 class LogSettings:

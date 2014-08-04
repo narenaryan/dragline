@@ -97,12 +97,13 @@ class Request:
             if number == 0:
                 http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout)
 
+
             else:
 
-              ip = self.settings.PROXIES[number][0]
-              proxy = self.settings.PROXIES[number][1]
+              ip = self.settings.PROXIES[number-1][0]
+              proxy = self.settings.PROXIES[number-1][1]
               http = httplib2.Http(cache=self.settings.CACHE, timeout=timeout,proxy_info = httplib2.ProxyInfo(socks.PROXY_TYPE_HTTP,ip, proxy))
-
+              print ip
 
 
 
