@@ -12,6 +12,8 @@ import zipfile
 import pkgutil
 from defaultsettings import SpiderSettings
 from getpass import getpass
+import stat
+
 config_file = os.path.expanduser('~/.dragline')
 
 
@@ -88,19 +90,23 @@ def deploy(serv_name, spider_dir):
     print upload(**args)
 
 
-def generate(spider_dir):
-    main = pkgutil.get_data(__package__, "templates/main.tem")
-    s = Template(main)
-    main = s.substitute(spider_name=spider_dir)
-    settings = pkgutil.get_data(__package__, "templates/settings.tem")
+def generate_file(name, data, destination, executable=False):
+    tem = Template(pkgutil.get_data(__package__, "templates/%s.tem" % name))
+    content = tem.substitute(**data)
+    filename = os.path.join(destination, "%s.py" % name)
+    with open(filename, "w") as outfile:
+        outfile.write(content)
+    if executable:
+        mode = os.stat(filename).st_mode
+        os.chmod(filename, mode | stat.S_IXUSR)
 
+
+def generate(spider_dir):
     os.makedirs(spider_dir)
-    mainfile = open(os.path.join(spider_dir, "main.py"), "w")
-    mainfile.write(main)
-    mainfile.close()
-    settfile = open(os.path.join(spider_dir, "settings.py"), "w")
-    settfile.write(settings)
-    settfile.close()
+    spider_name = os.path.basename(os.path.normpath('dragline/templates/'))
+    generate_file("main", {'spider_name': spider_name}, spider_dir, True)
+    generate_file("settings", {}, spider_dir)
+    generate_file("db", {}, spider_dir)
 
 
 def add_server(serv_name):
