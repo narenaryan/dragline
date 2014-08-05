@@ -6,3 +6,4 @@ cssselect
 pytz
 parslepy
 SocksiPy-branch
+six

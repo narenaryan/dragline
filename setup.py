@@ -14,8 +14,7 @@ setup(name='Dragline',
       scripts=glob("scripts/*"),
       data_files=[('dragline/templates', glob("dragline/templates/*"))],
       include_package_data=True,
-      install_requires=[i.strip() for i in
-                        open('requirements.txt').xreadlines()],
+      install_requires=[i.strip() for i in open('requirements.txt')],
       test_suite='tests',
       classifiers=[
           'Programming Language :: Python',

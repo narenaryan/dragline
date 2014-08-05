@@ -5,8 +5,8 @@ import sys
 import argparse
 import os
 import traceback
-from defaultsettings import SpiderSettings, LogSettings
-from crawl import Crawler
+from .defaultsettings import SpiderSettings, LogSettings
+from .crawl import Crawler
 
 
 logger = LogSettings().getLogger("dragline")

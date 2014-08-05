@@ -1,7 +1,7 @@
 from lxml import html, etree
 from parslepy import Parselet
 from parslepy.funcs import xpathstrip, xpathtostring
-from urlparse import urldefrag, urljoin
+from six.moves.urllib.parse import urldefrag, urljoin
 from cssselect import HTMLTranslator
 import re
 

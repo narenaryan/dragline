@@ -1,10 +1,13 @@
-from dragline import __version__
-from urllib import urlencode
+import six
+if six.PY2:
+    from urllib import urlencode
+else:
+    from urllib.parse import urlencode
 import socket
 from hashlib import sha1
 import time
 import httplib2
-from defaultsettings import RequestSettings
+from .defaultsettings import RequestSettings
 from collections import defaultdict
 import operator
 import socks

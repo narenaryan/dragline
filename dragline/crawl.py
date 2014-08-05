@@ -4,8 +4,8 @@ try:
 except:
     from pickle import Pickler, Unpickler, HIGHEST_PROTOCOL
 import re
-from defaultsettings import CrawlSettings, RequestSettings
-from defaultsettings import SpiderSettings, LogSettings
+from .defaultsettings import CrawlSettings, RequestSettings
+from .defaultsettings import SpiderSettings, LogSettings
 from . import redisds
 from gevent.coros import BoundedSemaphore
 from .http import Request, RequestError
@@ -13,10 +13,11 @@ from uuid import uuid4
 from datetime import datetime
 from pytz import timezone
 import logging
+import six
 try:
     from cStringIO import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from six import StringIO
 
 
 class Pickle():
